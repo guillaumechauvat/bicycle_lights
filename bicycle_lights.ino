@@ -14,6 +14,8 @@
 #define SWITCH_HOLD 500
 // minimum time in milliseconds between two consecutive events, to avoid noise
 #define MIN_DELAY 10
+// time spent off after which the amplitude comes back to low when turning on
+#define OFF_HOLD 500
 // test; can be removed
 #define MAX_AMPL 511
 
@@ -41,9 +43,10 @@ int light_level = 0;
 bool brake = false;
 bool mode_pressed = false;  // whether the mode button was pressed recently
 bool mode_held = false;  // whether the mode button has been held pressed long enough
-bool high_ampl = false;
+bool high_ampl = false;  // keeps low vs high amplitude mode in memory even if lights are briefly switched off
 unsigned long time_switch = 0;
 unsigned long last_switch_event = 0;
+unsigned long time_off = 0;
 
 void setup() {
   analogWriteResolution(10);
@@ -96,11 +99,16 @@ void check_lights() {
     set_lights(light_level);
     //last_event = current_time;
     //elapsed = 0;
+    time_off = current_time;
     Serial.println("off");
   }
 
   // check if we should turn on the lights
   if (light_level == 0 && on_switch) {
+    // keep the level in memory only for short durations; otherwise restart at low amplitude
+    if (current_time - time_off > OFF_HOLD) {
+       high_ampl = false;
+    }
     if (high_ampl) {
       light_level = 2;
     } else {
@@ -121,6 +129,7 @@ void check_lights() {
       last_switch_event = current_time;
     } else if (elapsed_switch > MIN_DELAY && !mode_held) {
       // the switch has been pressed for long enough, switch mode
+      time_switch = current_time;  // mark when the switch is detected, so we can check later how long it was held
       mode_held = true;
       high_ampl = !high_ampl;
       if (high_ampl) {
@@ -131,7 +140,15 @@ void check_lights() {
       set_lights(light_level);
     }
   } else {
-    // mode button not pressed, reset timer (we want it to be held continuously to register)
+    // mode button not pressed
+    // if we're on 2 and the button wasn't held long enough, put back the lights on 1
+    unsigned long held_time = current_time - time_switch;
+    if (held_time < SWITCH_HOLD && light_level == 2) {
+      light_level = 1;
+      high_ampl = false;
+      set_lights(light_level);
+    }
+    // reset timer (we want it to be held continuously to register)
     mode_pressed = false;
     mode_held = false;
     last_switch_event = current_time;
