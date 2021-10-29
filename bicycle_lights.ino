@@ -61,30 +61,13 @@ void setup() {
   //attachInterrupt(digitalPinToInterrupt(ON_SWITCH), turn_off, RISING);
   //attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), switch_mode, CHANGE);
   //attachInterrupt(digitalPinToInterrupt(BRAKE_SWITCH), switch_brakes, CHANGE);
-  Serial.begin(38400);
+  Serial.begin(9600);
 }
 
 void loop() {
-  //Serial.println(digitalRead(ON_SWITCH));
-  //Serial.print(', ');
-  //Serial.println(light_level);
-  //attachInterrupt(digitalPinToInterrupt(ON_SWITCH), switch_, FALLING);
-  //attachInterrupt(digitalPinToInterrupt(ON_SWITCH), turn_off, RISING);
-  int on_switch = !digitalRead(ON_SWITCH);
-  int mode_switch = digitalRead(MODE_SWITCH);
   check_lights();
   delay(10);
-  Serial.print(on_switch);
-  Serial.print(", ");
-  Serial.print(mode_switch);
-  Serial.print(", ");
-  Serial.println(light_level);
 }
-
-/* TODO:
- *  * if off for long enough, reset high_ampl to false;
- *  * if 2 not held for long enough, reset to 1
- */
 
 void check_lights() {
   int on_switch = !digitalRead(ON_SWITCH);
@@ -97,10 +80,7 @@ void check_lights() {
   if (light_level > 0 && !on_switch) {
     light_level = 0;
     set_lights(light_level);
-    //last_event = current_time;
-    //elapsed = 0;
     time_off = current_time;
-    Serial.println("off");
   }
 
   // check if we should turn on the lights
@@ -115,9 +95,6 @@ void check_lights() {
       light_level = 1;
     }
     set_lights(light_level);
-    //last_event = current_time;
-    //elapsed = 0;
-    Serial.println("on");
   }
 
   // check for change of mode
