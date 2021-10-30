@@ -3,7 +3,7 @@
 #define BACK_LED 5
 #define ON_SWITCH 13   // purple
 #define MODE_SWITCH 2  // green
-#define BRAKE_SWITCH 9 // red
+#define BRAKE_SWITCH 9 // orange
 
 // low value for testing
 #define LOW_AMPL_FRONT 12
@@ -44,6 +44,7 @@ bool brake = false;
 bool mode_pressed = false;  // whether the mode button was pressed recently
 bool mode_held = false;  // whether the mode button has been held pressed long enough
 bool high_ampl = false;  // keeps low vs high amplitude mode in memory even if lights are briefly switched off
+bool brake_on = false;  // brake lights applied
 unsigned long time_switch = 0;
 unsigned long last_switch_event = 0;
 unsigned long time_off = 0;
@@ -72,6 +73,8 @@ void loop() {
 void check_lights() {
   int on_switch = !digitalRead(ON_SWITCH);
   int mode_switch = digitalRead(MODE_SWITCH) && on_switch;
+  // no fancy timings here for now
+  brake = !digitalRead(BRAKE_SWITCH);
 
   unsigned long current_time = millis();
   unsigned long elapsed_switch = current_time - last_switch_event;
@@ -130,6 +133,16 @@ void check_lights() {
     mode_held = false;
     last_switch_event = current_time;
   }
+
+  // check if we need to update the brake lights
+  if (brake && !brake_on) {
+    brake_on = true;
+    analogWrite(BACK_LED, HIGH_AMPL_BACK);
+  }
+  if (!brake && brake_on) {
+    brake_on = false;
+    analogWrite(BACK_LED, LOW_AMPL_BACK);
+  }
 }
 
 
@@ -138,15 +151,30 @@ void set_lights(int level) {
     case 0:
       analogWrite(FRONT_LED, 0);
       analogWrite(BACK_LED, 0);
+      if (brake) {
+        analogWrite(BACK_LED, HIGH_AMPL_BACK);
+      } else {
+        analogWrite(BACK_LED, 0);
+      }
       break;
     case 1:
       analogWrite(FRONT_LED, LOW_AMPL_FRONT);
       analogWrite(BACK_LED, LOW_AMPL_BACK);
+      // back LED power depends on brake, not general luminosity level
+      if (brake) {
+        analogWrite(BACK_LED, HIGH_AMPL_BACK);
+      } else {
+        analogWrite(BACK_LED, LOW_AMPL_BACK);
+      }
       break;
      case 2:
       analogWrite(FRONT_LED, HIGH_AMPL_FRONT);
-      // brakes not checked for now
-      analogWrite(BACK_LED, LOW_AMPL_BACK);
+      // back LED power depends on brake, not general luminosity level
+      if (brake) {
+        analogWrite(BACK_LED, HIGH_AMPL_BACK);
+      } else {
+        analogWrite(BACK_LED, LOW_AMPL_BACK);
+      }
       break;
   }
 }
