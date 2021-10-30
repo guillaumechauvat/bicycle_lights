@@ -45,9 +45,11 @@ bool mode_pressed = false;  // whether the mode button was pressed recently
 bool mode_held = false;  // whether the mode button has been held pressed long enough
 bool high_ampl = false;  // keeps low vs high amplitude mode in memory even if lights are briefly switched off
 bool brake_on = false;  // brake lights applied
+bool brake_pressed = false; // brake button detected pressed
 unsigned long time_switch = 0;
 unsigned long last_switch_event = 0;
 unsigned long time_off = 0;
+unsigned long last_brake_event = 0;
 
 void setup() {
   analogWriteResolution(10);
@@ -134,14 +136,26 @@ void check_lights() {
     last_switch_event = current_time;
   }
 
-  // check if we need to update the brake lights
+  // check if we need to update the brake lights, with timing to avoid problems during switching
   if (brake && !brake_on) {
-    brake_on = true;
-    analogWrite(BACK_LED, HIGH_AMPL_BACK);
+    if(current_time - last_brake_event > MIN_DELAY) {
+      brake_on = true;
+      analogWrite(BACK_LED, HIGH_AMPL_BACK);
+    } else if (!brake_pressed) {
+      // start timer to see if it will be held for long enough
+      brake_pressed = true;
+      last_brake_event = current_time;
+    }
   }
-  if (!brake && brake_on) {
-    brake_on = false;
-    analogWrite(BACK_LED, LOW_AMPL_BACK);
+  if (!brake) {
+    if (brake_on) {
+      // turn off the brake lights
+      brake_on = false;
+      analogWrite(BACK_LED, LOW_AMPL_BACK);
+    }
+    // in any case, reset timer
+    brake_pressed = false;
+    last_brake_event = current_time;
   }
 }
 
