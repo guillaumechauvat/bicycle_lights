@@ -40,7 +40,6 @@ class Sound {
 // light levels:
 // 0: off, 1: low power, 2: high power
 int light_level = 0;
-bool brake = false;
 bool mode_pressed = false;  // whether the mode button was pressed recently
 bool mode_held = false;  // whether the mode button has been held pressed long enough
 bool high_ampl = false;  // keeps low vs high amplitude mode in memory even if lights are briefly switched off
@@ -60,10 +59,9 @@ void setup() {
   pinMode(ON_SWITCH, INPUT_PULLUP);
   pinMode(MODE_SWITCH, INPUT_PULLUP);
   pinMode(BRAKE_SWITCH, INPUT_PULLUP);
-  //attachInterrupt(digitalPinToInterrupt(ON_SWITCH), switch_on, CHANGE);
-  //attachInterrupt(digitalPinToInterrupt(ON_SWITCH), turn_off, RISING);
-  //attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), switch_mode, CHANGE);
-  //attachInterrupt(digitalPinToInterrupt(BRAKE_SWITCH), switch_brakes, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ON_SWITCH), check_lights, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(MODE_SWITCH), check_lights, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(BRAKE_SWITCH), check_lights, CHANGE);
   Serial.begin(9600);
 }
 
@@ -75,8 +73,7 @@ void loop() {
 void check_lights() {
   int on_switch = !digitalRead(ON_SWITCH);
   int mode_switch = digitalRead(MODE_SWITCH) && on_switch;
-  // no fancy timings here for now
-  brake = !digitalRead(BRAKE_SWITCH);
+  int brake_switch = !digitalRead(BRAKE_SWITCH);
 
   unsigned long current_time = millis();
   unsigned long elapsed_switch = current_time - last_switch_event;
@@ -109,7 +106,7 @@ void check_lights() {
       // the button wasn't pressed before
       mode_pressed = true;
       last_switch_event = current_time;
-    } else if (elapsed_switch > MIN_DELAY && !mode_held) {
+    } else if (elapsed_switch >= MIN_DELAY && !mode_held) {
       // the switch has been pressed for long enough, switch mode
       time_switch = current_time;  // mark when the switch is detected, so we can check later how long it was held
       mode_held = true;
@@ -137,8 +134,8 @@ void check_lights() {
   }
 
   // check if we need to update the brake lights, with timing to avoid problems during switching
-  if (brake && !brake_on) {
-    if(current_time - last_brake_event > MIN_DELAY) {
+  if (brake_switch && !brake_on) {
+    if(current_time - last_brake_event >= MIN_DELAY) {
       brake_on = true;
       analogWrite(BACK_LED, HIGH_AMPL_BACK);
     } else if (!brake_pressed) {
@@ -147,7 +144,7 @@ void check_lights() {
       last_brake_event = current_time;
     }
   }
-  if (!brake) {
+  if (!brake_switch) {
     if (brake_on) {
       // turn off the brake lights
       brake_on = false;
