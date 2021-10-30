@@ -58,8 +58,8 @@ module WireHole() {
     }
 };
 
-module AttachDip(x, y, z, flip) {
-    translate([x - l_attach/2, y, z])
+module AttachDip(l, x, y, z, flip) {
+    translate([x - l/2, y, z])
     rotate([-45 + 180*flip, 0, 0])
     cube(l_attach);
 }
@@ -85,10 +85,10 @@ module Box() {
         polygon([[-(lx+thickness)/2, -(ly+thickness)/2], [(lx+thickness)/2, -(ly+thickness)/2], [(lx+thickness)/2, (ly+thickness)/2], [-(lx+thickness)/2, (ly+thickness)/2]]);
         
         // lid attach points
-        AttachDip(x_attach, ly/2 + 0.7*thickness, z_attach, 0);
-        AttachDip(-x_attach, ly/2 + 0.7*thickness, z_attach, 0);
-        AttachDip(x_attach, -ly/2 - 0.7*thickness, z_attach, 1);
-        AttachDip(-x_attach, -ly/2 - 0.7*thickness, z_attach, 1);
+        AttachDip(l_attach, x_attach, ly/2 + 0.7*thickness, z_attach, 0);
+        AttachDip(l_attach, -x_attach, ly/2 + 0.7*thickness, z_attach, 0);
+        AttachDip(l_attach, x_attach, -ly/2 - 0.7*thickness, z_attach, 1);
+        AttachDip(l_attach, -x_attach, -ly/2 - 0.7*thickness, z_attach, 1);
     }
 };
 
@@ -138,10 +138,10 @@ module Lid() {
             translate([0, 0, -thickness])
             linear_extrude(lz + 3*thickness)
             polygon([[-lx/2+lid_gap, -ly/2+lid_gap], [lx/2-lid_gap, -ly/2+lid_gap], [lx/2-lid_gap, ly/2-lid_gap], [-lx/2+lid_gap, ly/2-lid_gap]]);
-            AttachDip(x_attach, ly/2+lid_gap + 0.7*thickness, z_attach, 0);
-            AttachDip(-x_attach, ly/2+lid_gap + 0.7*thickness, z_attach, 0);
-            AttachDip(x_attach, -ly/2-lid_gap - 0.7*thickness, z_attach, 1);
-            AttachDip(-x_attach, -ly/2-lid_gap - 0.7*thickness, z_attach, 1);
+            AttachDip(l_attach-2*lid_gap, x_attach, ly/2+lid_gap + 0.7*thickness, z_attach, 0);
+            AttachDip(l_attach-2*lid_gap, -x_attach, ly/2+lid_gap + 0.7*thickness, z_attach, 0);
+            AttachDip(l_attach-2*lid_gap, x_attach, -ly/2-lid_gap - 0.7*thickness, z_attach, 1);
+            AttachDip(l_attach-2*lid_gap, -x_attach, -ly/2-lid_gap - 0.7*thickness, z_attach, 1);
         }
    }
 }
