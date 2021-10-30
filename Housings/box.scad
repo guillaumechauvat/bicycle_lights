@@ -12,6 +12,10 @@ h_hole = 8;
 // fillet radius
 fillet = 3;
 
+// attach points
+x_attach = 30;
+z_attach = lz - thickness;
+l_attach = 12;
 
 lxt = lx + 2*thickness;
 lyt = ly + 2*thickness;
@@ -36,7 +40,7 @@ module Fillet(r) {
     }
 };
 
-module Hole() {
+module WireHole() {
     translate([lx/2-thickness, 0, lz+h_hole/2])
     rotate([0, 90, 0])
     difference() {
@@ -49,6 +53,12 @@ module Hole() {
     }
 };
 
+module AttachDip(x, y, z, flip) {
+    translate([x - l_attach/2, y, z])
+    rotate([-45 + 180*flip, 0, 0])
+    cube(l_attach);
+}
+
 module Box() {
     difference() {
         linear_extrude(lz + thickness)
@@ -56,14 +66,24 @@ module Box() {
         translate([0, 0, thickness])
         linear_extrude(lz + thickness)
         polygon([[-lx/2, -ly/2], [lx/2, -ly/2], [lx/2, ly/2], [-lx/2, ly/2]]);
-        Hole();
+        WireHole();
+        
+        // fillet
         translate([-lxt/2, -lyt/2, 0]) Fillet(fillet);
         translate([-lxt/2, lyt/2, 0]) Fillet(fillet);
         translate([lxt/2, lyt/2, 0]) Fillet(fillet);
         translate([lxt/2, -lyt/2, 0]) Fillet(fillet);
+        
+        // place for lid
+        translate([0, 0, lz+thickness/2])
+        linear_extrude(thickness)
+        polygon([[-(lx+thickness)/2, -(ly+thickness)/2], [(lx+thickness)/2, -(ly+thickness)/2], [(lx+thickness)/2, (ly+thickness)/2], [-(lx+thickness)/2, (ly+thickness)/2]]);
+        
+        // lid attach points
+        AttachDip(x_attach, ly/2 + 0.7*thickness, z_attach, 0);
+        AttachDip(-x_attach, ly/2 + 0.7*thickness, z_attach, 0);
+        AttachDip(x_attach, -ly/2 - 0.7*thickness, z_attach, 1);
+        AttachDip(-x_attach, -ly/2 - 0.7*thickness, z_attach, 1);
     }
 };
-//Hole();
 Box();
-
-
