@@ -18,6 +18,9 @@ z_attach = lz - thickness;
 l_attach = 12;
 w_attach = 1.5;
 
+// lid
+lid_gap = 0.5;
+
 lxt = lx + 2*thickness;
 lyt = ly + 2*thickness;
 eps=1e-3;
@@ -110,6 +113,8 @@ module LidSide(x, y, flip) {
 }
 
 module Lid() {
+    box_scale_x = (lxt-2*lid_gap)/lxt;
+    box_scale_y = (lyt-2*lid_gap)/lyt;
     difference() {
         union() {
             translate([0, 0, lz+thickness/2])
@@ -124,10 +129,23 @@ module Lid() {
         translate([-lxt/2+eps, lyt/2-eps, 0]) Fillet(fillet);
         translate([lxt/2-eps, lyt/2-eps, 0]) Fillet(fillet);
         translate([lxt/2-eps, -lyt/2+eps, 0]) Fillet(fillet);
-        Box();
+        scale([box_scale_x, box_scale_y, 1])
         WireHoleLid();
+        // intersection with box
+        difference() {
+            linear_extrude(lz + thickness)
+            polygon([[-lxt/2-lid_gap, -lyt/2-lid_gap], [lxt/2+lid_gap, -lyt/2-lid_gap], [lxt/2+lid_gap, lyt/2+lid_gap], [-lxt/2-lid_gap, lyt/2+lid_gap]]);
+            translate([0, 0, -thickness])
+            linear_extrude(lz + 3*thickness)
+            polygon([[-lx/2+lid_gap, -ly/2+lid_gap], [lx/2-lid_gap, -ly/2+lid_gap], [lx/2-lid_gap, ly/2-lid_gap], [-lx/2+lid_gap, ly/2-lid_gap]]);
+            AttachDip(x_attach, ly/2+lid_gap + 0.7*thickness, z_attach, 0);
+            AttachDip(-x_attach, ly/2+lid_gap + 0.7*thickness, z_attach, 0);
+            AttachDip(x_attach, -ly/2-lid_gap - 0.7*thickness, z_attach, 1);
+            AttachDip(-x_attach, -ly/2-lid_gap - 0.7*thickness, z_attach, 1);
+        }
    }
 }
 
 Box();
 Lid();
+
