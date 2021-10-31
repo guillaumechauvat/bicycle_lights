@@ -6,7 +6,7 @@ h_led = 12;
 d0 = 17;
 // total inside diameter
 // The lens diameter will be dmax+thickness
-dmax = 55;
+dmax = 58;
 
 // walls
 thickness = 3;
@@ -14,6 +14,15 @@ fillet = 1;
 
 // base size
 w_base = 40;
+
+// handlebar interface
+d_handlebar = 22.5;
+y_handlebar = -34;
+z_handlebar = 20;
+w_handlebar = 15;
+t_handlebar = 4;
+// opening angle
+theta = 45;
 
 // gaps for printing tolerance
 gap = 0.2;
@@ -72,6 +81,17 @@ module Fillet(r) {
     }
 };
 
+module Holder() {
+    translate([0, y_handlebar, z_handlebar])
+    rotate([0, 90, 0])
+    difference() {
+        cylinder(h=w_handlebar, r=d_handlebar/2+t_handlebar, center=true, $fn=150);
+        cylinder(h=2*w_handlebar, r=d_handlebar/2, center=true, $fn=150);
+        linear_extrude(2*w_handlebar, center=true)
+        polygon([[0, 0], [2*d_handlebar*tan(theta), -2*d_handlebar], [-2*d_handlebar*tan(theta), -2*d_handlebar]]);
+    }
+};
+
 difference() {
     union() {
         // empirical value on z, I'm too lazy to do the math right now, it's midnight
@@ -94,6 +114,8 @@ difference() {
             translate([w_base/2, -w_base/2, 0])
             Fillet(fillet);
         }
+        // handlebar holder
+        Holder();
     }
     Paraboloid(f, dmax/2+eps);
     // cooling block plane
