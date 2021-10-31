@@ -19,7 +19,7 @@ fillet = 3;
 x_attach = 30;
 z_attach = lz - thickness;
 l_attach = 12;
-w_attach = 1.5;
+w_attach = 4;
 
 
 lxt = lx + 2*thickness;
@@ -90,6 +90,14 @@ module Box() {
         AttachDip(l_attach, -x_attach, ly/2 + 0.7*thickness, z_attach, 0);
         AttachDip(l_attach, x_attach, -ly/2 - 0.7*thickness, z_attach, 1);
         AttachDip(l_attach, -x_attach, -ly/2 - 0.7*thickness, z_attach, 1);
+        
+        // space for lid attach bars
+        translate([x_attach, 0, lz+thickness])
+        scale([l_attach+2*gap, 2*ly, thickness])
+        cube(1, center=true);
+        translate([-x_attach, 0, lz+thickness])
+        scale([l_attach+2*gap, 2*ly, thickness])
+        cube(1, center=true);
     }
 };
 
@@ -145,6 +153,13 @@ module Lid() {
             AttachDip(l_attach-2*gap, -x_attach, ly/2+gap + 0.7*thickness, z_attach, 0);
             AttachDip(l_attach-2*gap, x_attach, -ly/2-gap - 0.7*thickness, z_attach, 1);
             AttachDip(l_attach-2*gap, -x_attach, -ly/2-gap - 0.7*thickness, z_attach, 1);
+            // reinforcement for side attach
+            translate([x_attach, 0, lz+thickness])
+            scale([l_attach, 2*ly, thickness])
+            cube(1, center=true);
+            translate([-x_attach, 0, lz+thickness])
+            scale([l_attach, 2*ly, thickness])
+            cube(1, center=true);
         }
    }
 }
