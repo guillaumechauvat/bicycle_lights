@@ -1,13 +1,16 @@
-lx = 91;
-ly = 70;
-lz = 24;
+// gap for tolerances
+gap = 0.3;
+
+lx = 91 + 2*gap;
+ly = 70 + 2*gap;
+lz = 28;
 
 // wall thickness
 thickness = 4;
 
 // hole size
-w_hole = 16;
-h_hole = 8;
+w_hole = 14;
+h_hole = 6;
 
 // fillet radius
 fillet = 3;
@@ -18,8 +21,6 @@ z_attach = lz - thickness;
 l_attach = 12;
 w_attach = 1.5;
 
-// lid
-lid_gap = 0.5;
 
 lxt = lx + 2*thickness;
 lyt = ly + 2*thickness;
@@ -93,11 +94,11 @@ module Box() {
 };
 
 module WireHoleLid() {
-    translate([lx/2-thickness, 0, lz-h_hole/2])
-    rotate([0, 90, 0])
+    translate([lx/2+thickness+eps, 0, lz+thickness-eps])
+    rotate([0, -90, 0])
     difference() {
         linear_extrude(3*thickness)
-        polygon([[-h_hole-eps, -w_hole/2-eps], [-h_hole-eps, w_hole/2+eps], [h_hole+eps, w_hole/2+eps], [h_hole+eps, -w_hole/2-eps]]);
+        polygon([[-h_hole-eps, -w_hole/2-eps], [-h_hole-eps, w_hole/2+eps], [eps, w_hole/2+eps], [eps, -w_hole/2-eps]]);
     }
 };
 
@@ -113,39 +114,40 @@ module LidSide(x, y, flip) {
 }
 
 module Lid() {
-    box_scale_x = (lxt-2*lid_gap)/lxt;
-    box_scale_y = (lyt-2*lid_gap)/lyt;
     difference() {
         union() {
+            // main body to be carved
             translate([0, 0, lz+thickness/2])
             linear_extrude(thickness)
             polygon([[-lxt/2+eps, -lyt/2+eps], [lxt/2-eps, -lyt/2+eps], [lxt/2-eps, lyt/2-eps], [-lxt/2+eps, lyt/2-eps]]);
+            // protruding side stuff
             LidSide(x_attach, lyt/2, 0);
             LidSide(-x_attach, lyt/2, 0);
             LidSide(-x_attach, -lyt/2, 1);
             LidSide(x_attach, -lyt/2, 1);
         }
+        // fillet
         translate([-lxt/2+eps, -lyt/2+eps, 0]) Fillet(fillet);
         translate([-lxt/2+eps, lyt/2-eps, 0]) Fillet(fillet);
         translate([lxt/2-eps, lyt/2-eps, 0]) Fillet(fillet);
         translate([lxt/2-eps, -lyt/2+eps, 0]) Fillet(fillet);
-        scale([box_scale_x, box_scale_y, 1])
         WireHoleLid();
         // intersection with box
         difference() {
+            // remove some extra width so the side attach thingies are not rubbing too much
             linear_extrude(lz + thickness)
-            polygon([[-lxt/2-lid_gap, -lyt/2-lid_gap], [lxt/2+lid_gap, -lyt/2-lid_gap], [lxt/2+lid_gap, lyt/2+lid_gap], [-lxt/2-lid_gap, lyt/2+lid_gap]]);
+            polygon([[-lxt/2-gap, -lyt/2-gap], [lxt/2+gap, -lyt/2-gap], [lxt/2+gap, lyt/2+gap], [-lxt/2-gap, lyt/2+gap]]);
+            // leave material on the inside of the lid so it fits nicely
             translate([0, 0, -thickness])
             linear_extrude(lz + 3*thickness)
-            polygon([[-lx/2+lid_gap, -ly/2+lid_gap], [lx/2-lid_gap, -ly/2+lid_gap], [lx/2-lid_gap, ly/2-lid_gap], [-lx/2+lid_gap, ly/2-lid_gap]]);
-            AttachDip(l_attach-2*lid_gap, x_attach, ly/2+lid_gap + 0.7*thickness, z_attach, 0);
-            AttachDip(l_attach-2*lid_gap, -x_attach, ly/2+lid_gap + 0.7*thickness, z_attach, 0);
-            AttachDip(l_attach-2*lid_gap, x_attach, -ly/2-lid_gap - 0.7*thickness, z_attach, 1);
-            AttachDip(l_attach-2*lid_gap, -x_attach, -ly/2-lid_gap - 0.7*thickness, z_attach, 1);
+            polygon([[-lx/2+gap, -ly/2+gap], [lx/2-gap, -ly/2+gap], [lx/2-gap, ly/2-gap], [-lx/2+gap, ly/2-gap]]);
+            AttachDip(l_attach-2*gap, x_attach, ly/2+gap + 0.7*thickness, z_attach, 0);
+            AttachDip(l_attach-2*gap, -x_attach, ly/2+gap + 0.7*thickness, z_attach, 0);
+            AttachDip(l_attach-2*gap, x_attach, -ly/2-gap - 0.7*thickness, z_attach, 1);
+            AttachDip(l_attach-2*gap, -x_attach, -ly/2-gap - 0.7*thickness, z_attach, 1);
         }
    }
 }
 
 Box();
 Lid();
-
