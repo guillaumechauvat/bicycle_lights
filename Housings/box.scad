@@ -108,8 +108,8 @@ module LidSide(x, y, flip) {
         rotate([0, 0, 180*flip])
         linear_extrude(lz + 2*thickness - z_attach)
         polygon([[-l_attach/2, -thickness+eps], [l_attach/2, -thickness+eps], [l_attach/2, w_attach], [-l_attach/2, w_attach]]);
-        translate([x+l_attach/2, y+w_attach, 0]) Fillet(w_attach);
-        translate([x-l_attach/2, y+w_attach, 0]) Fillet(w_attach);
+        translate([x+l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
+        translate([x-l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
     }
 }
 
