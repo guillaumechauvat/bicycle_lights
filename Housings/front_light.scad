@@ -17,12 +17,12 @@ w_base = 40;
 
 // handlebar interface
 d_handlebar = 22.5;
-y_handlebar = -34;
+y_handlebar = -33.8;
 z_handlebar = 20;
 w_handlebar = 15;
 t_handlebar = 4;
 // opening angle
-theta = 45;
+theta = 60;
 
 // gaps for printing tolerance
 gap = 0.2;
@@ -61,6 +61,19 @@ module WireHole(d, t) {
     }
 }
 
+module DoubleWireHole(d, t) {
+    translate([0, -d/2, 0])
+    WireHole(d, t);
+    translate([0, d/2, 0])
+    WireHole(d, t);
+    translate([0, 0, d/2])
+    rotate([0, 90, 0])
+    linear_extrude(t, center=true)
+    translate([d, 0, 0])
+    scale([2, 1, 1])
+    square(d, center=true);
+}
+
 module Fillet(r) {
     difference() {
         linear_extrude(3*h, center=true) square(2*r, center=true);
@@ -81,7 +94,7 @@ module Fillet(r) {
     }
 };
 
-module Holder() {
+module CircleHolder() {
     translate([0, y_handlebar, z_handlebar])
     rotate([0, 90, 0])
     difference() {
@@ -91,6 +104,26 @@ module Holder() {
         polygon([[0, 0], [2*d_handlebar*tan(theta), -2*d_handlebar], [-2*d_handlebar*tan(theta), -2*d_handlebar]]);
     }
 };
+
+module BulkHolder() {
+    difference() {
+        rotate([0, 90, 0])
+        rotate([0, 0, 90])
+        linear_extrude(w_handlebar, center=true)
+        polygon([[-45, f],
+            [-w_base/2, f],
+            [-w_base/2, h],
+            [-dmax/2-thickness, h],
+            [y_handlebar-d_handlebar/2, z_handlebar+d_handlebar/2]
+        ]);
+        translate([0, y_handlebar, z_handlebar])
+        rotate([0, 90, 0]) {
+            cylinder(h=2*w_handlebar, r=d_handlebar/2, center=true, $fn=150);
+            linear_extrude(2*w_handlebar, center=true)
+            polygon([[0, 0], [2*d_handlebar*tan(theta), -2*d_handlebar], [-2*d_handlebar*tan(theta), -2*d_handlebar]]);
+        }
+    }
+}
 
 difference() {
     union() {
@@ -115,7 +148,7 @@ difference() {
             Fillet(fillet);
         }
         // handlebar holder
-        Holder();
+        BulkHolder();
     }
     Paraboloid(f, dmax/2+eps);
     // cooling block plane
@@ -134,12 +167,12 @@ difference() {
     rotate([0, 0, 180])
     translate([w_led/2-d_wire_in/2, -h_led/2, f+d_wire_in])
     WireHole(d_wire_in, 4*thickness);
-    translate([d_wire_out, -w_base/2, f+0.7*d_wire_out])
+    
+    // outside wire holes merged together
+    translate([-0.55*w_base/2, -w_base/2, f+0.6*d_wire_out])
     rotate([0, 0, 90])
-    WireHole(d_wire_out, 2*thickness);
-    translate([-d_wire_out, -w_base/2, f+0.7*d_wire_out])
-    rotate([0, 0, 90])
-    WireHole(d_wire_out, 2*thickness);
+    DoubleWireHole(d_wire_out, 3*thickness);
+    
     // place for inserting lens
     translate([0, 0, h-d_lens])
     cylinder(h=2*d_lens, r=dmax/2+thickness/2, $fn=150);
