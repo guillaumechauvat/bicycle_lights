@@ -1,9 +1,9 @@
 // LED dimensions
-w_led = 15;
-h_led = 12;
+w_led = 17;
+h_led = 14;
 
 // diameter of cooling / LED base where the parabola is cut
-d0 = 17;
+d0 = 18.5;
 // total inside diameter
 // The lens diameter will be dmax+thickness
 dmax = 58;
