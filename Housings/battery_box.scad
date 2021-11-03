@@ -207,11 +207,15 @@ module Lid() {
 module Bottom() {
     difference() {
         translate([0, 0, -thickness - gap_h_bottom])
-        DShape(r_tot, thickness + gap_h_bottom);
+        DShape(r_tot + thickness/2, 1.5*thickness + gap_h_bottom);
+        // main hole
         translate([0, 0, -gap_h_bottom])
         DShape(r_tot - thickness, thickness + gap_h_bottom);
+        // border
+        DShape(r_tot, thickness + gap_h_bottom);
         // place for wires
-        cube([3*thickness, w_wire, w_wire], center=true);
+        translate([0, 0, w_wire/2])
+        cube([3*thickness, w_wire, 2*w_wire], center=true);
     }
 }
 
