@@ -6,10 +6,13 @@ d_button = 6.5;
 gap_side = 0.5;
 gap_h_bottom = 3;
 gap_h_top = 2;
-offset_bottom = 20;
-offset_extra = 6;
-thickness = 3;
-inter_r = 3;
+offset_top = 5;
+offset_extra = 8;
+thickness = 4;
+inter_r = 2.5;
+wire_x_offset = 2;
+oring = 2;
+oring_hfact = 0.8;
 $fn=80;
 
 
@@ -34,10 +37,10 @@ module BatteryHole() {
     cylinder(h=3*h, d=dtot, center=true);
 }
 
-module BottomGap() {
+module TopGap() {
     c1 = sqrt(3)/2;
     c2 = 0.5;
-    translate([0, 0, h-offset_bottom])
+    translate([0, 0, h-offset_top])
     linear_extrude(2*h)
     polygon([
         [r_tot - offset_extra, spacing],
@@ -53,12 +56,62 @@ module BottomGap() {
     ]);
 }
 
-module InterHoles() {
-    translate([-thickness/2+c2*r_tot, spacing - c1*r_tot, 0])
+module WireHole() {
+    translate([-thickness/2+c2*r_tot + wire_x_offset, spacing - c1*r_tot, 0])
     cylinder(r=inter_r, h=3*h, center=true);
 }
 
-module OutsideBox() {
+module Oring() {
+    r1 = d/2 + gap_side + thickness/2 + oring/2;
+    r2 = d/2 + gap_side + thickness/2 - oring/2;
+    translate([0, 0, h-oring_hfact*oring])
+    difference() {
+            union() {
+                translate([r_tot, spacing, 0])
+                cylinder(h=h, r=r1);
+                translate([r_tot, -spacing, 0])
+                cylinder(h=h, r=r1);
+                translate([r_tot + x_spacing, y_spacing, 0])
+                cylinder(h=h, r=r1);
+                translate([r_tot + x_spacing, -y_spacing, 0])
+                cylinder(h=h, r=r1);
+                linear_extrude(h)
+                polygon([
+                    [r_tot-r1, -spacing],
+                    [r_tot-r1, spacing],
+                    [r_tot + r1*c2, spacing + r1*c1],
+                    [r_tot + x_spacing + r1*c2, y_spacing + r1*c1],
+                    [r_tot + x_spacing + r1, y_spacing],
+                    [r_tot + x_spacing + r1, -y_spacing],
+                    [r_tot + x_spacing + r1*c2, -y_spacing - r1*c1],
+                    [r_tot + r1*c2, -spacing - r1*c1]
+                ]);
+        }
+            union() {
+                translate([r_tot, spacing, 0])
+                cylinder(h=3*h, r=r2, center=true);
+                translate([r_tot, -spacing, 0])
+                cylinder(h=3*h, r=r2, center=true);
+                translate([r_tot + x_spacing, y_spacing, 0])
+                cylinder(h=3*h, r=r2, center=true);
+                translate([r_tot + x_spacing, -y_spacing, 0])
+                cylinder(h=3*h, r=r2, center=true);
+                linear_extrude(3*h, center=true)
+                polygon([
+                    [r_tot-r2, -spacing],
+                    [r_tot-r2, spacing],
+                    [r_tot + r2*c2, spacing + r2*c1],
+                    [r_tot + x_spacing + r2*c2, y_spacing + r2*c1],
+                    [r_tot + x_spacing + r2, y_spacing],
+                    [r_tot + x_spacing + r2, -y_spacing],
+                    [r_tot + x_spacing + r2*c2, -y_spacing - r2*c1],
+                    [r_tot + r2*c2, -spacing - r2*c1]
+                ]);
+            }
+    }
+}
+
+module Box() {
     difference() {
         union() {
             translate([r_tot, spacing, 0])
@@ -91,9 +144,11 @@ module OutsideBox() {
         BatteryHole();
         translate([r_tot + x_spacing, -y_spacing, 0])
         BatteryHole();
-        BottomGap();
-        InterHoles();
+        TopGap();
+        WireHole();
+        Oring();
     }
 }
 
-OutsideBox();
+Box();
+//Oring();
