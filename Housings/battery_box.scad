@@ -19,6 +19,7 @@ z_attach = h - thickness;
 l_attach = 12;
 w_attach = 4;
 y_attach = 17;
+gap = 0.2;
 
 $fn=80;
 eps = 1e-3;
@@ -158,6 +159,9 @@ module Box() {
         TopGap();
         WireHole();
         Oring();
+        AttachDip(0.95*l_attach, 0.3*thickness + gap, y_attach, z_attach, 0);
+        AttachDip(0.95*l_attach, 0.3*thickness + gap, -y_attach, z_attach, 0);
+        AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness - gap, 0, z_attach, 1);
     }
 }
 
