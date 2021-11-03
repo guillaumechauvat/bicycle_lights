@@ -13,7 +13,14 @@ inter_r = 2.5;
 wire_x_offset = 2;
 oring = 2;
 oring_hfact = 0.8;
+
+// attach mechanism
+z_attach = h - thickness;
+l_attach = 12;
+w_attach = 4;
+
 $fn=80;
+eps = 1e-3;
 
 
 // useful dimensions
@@ -35,6 +42,30 @@ module Battery() {
 module BatteryHole() {
     dtot = d + 2*gap_side;
     cylinder(h=3*h, d=dtot, center=true);
+}
+
+module DShape(r) {
+    union() {
+        translate([r_tot, spacing, 0])
+        cylinder(h=h, r=r);
+        translate([r_tot, -spacing, 0])
+        cylinder(h=h, r=r);
+        translate([r_tot + x_spacing, y_spacing, 0])
+        cylinder(h=h, r=r);
+        translate([r_tot + x_spacing, -y_spacing, 0])
+        cylinder(h=h, r=r);
+        linear_extrude(h)
+        polygon([
+             [r_tot-r, -spacing],
+             [r_tot-r, spacing],
+             [r_tot + r*c2, spacing + r*c1],
+             [r_tot + x_spacing + r*c2, y_spacing + r*c1],
+             [r_tot + x_spacing + r, y_spacing],
+             [r_tot + x_spacing + r, -y_spacing],
+             [r_tot + x_spacing + r*c2, -y_spacing - r*c1],
+             [r_tot + r*c2, -spacing - r*c1]
+        ]);
+    }
 }
 
 module TopGap() {
@@ -66,74 +97,52 @@ module Oring() {
     r2 = d/2 + gap_side + thickness/2 - oring/2;
     translate([0, 0, h-oring_hfact*oring])
     difference() {
-            union() {
-                translate([r_tot, spacing, 0])
-                cylinder(h=h, r=r1);
-                translate([r_tot, -spacing, 0])
-                cylinder(h=h, r=r1);
-                translate([r_tot + x_spacing, y_spacing, 0])
-                cylinder(h=h, r=r1);
-                translate([r_tot + x_spacing, -y_spacing, 0])
-                cylinder(h=h, r=r1);
-                linear_extrude(h)
-                polygon([
-                    [r_tot-r1, -spacing],
-                    [r_tot-r1, spacing],
-                    [r_tot + r1*c2, spacing + r1*c1],
-                    [r_tot + x_spacing + r1*c2, y_spacing + r1*c1],
-                    [r_tot + x_spacing + r1, y_spacing],
-                    [r_tot + x_spacing + r1, -y_spacing],
-                    [r_tot + x_spacing + r1*c2, -y_spacing - r1*c1],
-                    [r_tot + r1*c2, -spacing - r1*c1]
-                ]);
+            DShape(r1);
+            DShape(r2);
+    }
+}
+
+
+module Fillet(r) {
+    difference() {
+        linear_extrude(3*h, center=true) square(2*r, center=true);
+        union() {
+            translate([r, r, 0])
+            linear_extrude(4*h, center=true)
+            circle(r, $fn=40);
+            translate([r, -r, 0])
+            linear_extrude(4*h, center=true)
+            circle(r, $fn=40);
+            translate([-r, -r, 0])
+            linear_extrude(4*h, center=true)
+            circle(r, $fn=40);
+            translate([-r, r, 0])
+            linear_extrude(4*h, center=true)
+            circle(r, $fn=40);
         }
-            union() {
-                translate([r_tot, spacing, 0])
-                cylinder(h=3*h, r=r2, center=true);
-                translate([r_tot, -spacing, 0])
-                cylinder(h=3*h, r=r2, center=true);
-                translate([r_tot + x_spacing, y_spacing, 0])
-                cylinder(h=3*h, r=r2, center=true);
-                translate([r_tot + x_spacing, -y_spacing, 0])
-                cylinder(h=3*h, r=r2, center=true);
-                linear_extrude(3*h, center=true)
-                polygon([
-                    [r_tot-r2, -spacing],
-                    [r_tot-r2, spacing],
-                    [r_tot + r2*c2, spacing + r2*c1],
-                    [r_tot + x_spacing + r2*c2, y_spacing + r2*c1],
-                    [r_tot + x_spacing + r2, y_spacing],
-                    [r_tot + x_spacing + r2, -y_spacing],
-                    [r_tot + x_spacing + r2*c2, -y_spacing - r2*c1],
-                    [r_tot + r2*c2, -spacing - r2*c1]
-                ]);
-            }
+    }
+};
+
+module AttachDip(l, x, y, z, flip) {
+    translate([x - l/2, y, z])
+    rotate([-45 + 180*flip, 0, 0])
+    cube(l_attach);
+}
+
+module LidSide(x, y, flip) {
+    difference() {
+        translate([x, y, z_attach-thickness/2])
+        rotate([0, 0, 180*flip])
+        linear_extrude(h + 2*thickness - z_attach)
+        polygon([[-l_attach/2, -thickness+eps], [l_attach/2, -thickness+eps], [l_attach/2, w_attach], [-l_attach/2, w_attach]]);
+        translate([x+l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
+        translate([x-l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
     }
 }
 
 module Box() {
     difference() {
-        union() {
-            translate([r_tot, spacing, 0])
-            cylinder(h=h, r=r_tot);
-            translate([r_tot, -spacing, 0])
-            cylinder(h=h, r=r_tot);
-            translate([r_tot + x_spacing, y_spacing, 0])
-            cylinder(h=h, r=r_tot);
-            translate([r_tot + x_spacing, -y_spacing, 0])
-            cylinder(h=h, r=r_tot);
-            linear_extrude(h)
-            polygon([
-                [0, -spacing],
-                [0, spacing],
-                [r_tot + r_tot*c2, spacing + r_tot*c1],
-                [r_tot + x_spacing + r_tot*c2, y_spacing + r_tot*c1],
-                [r_tot + x_spacing + r_tot, y_spacing],
-                [r_tot + x_spacing + r_tot, -y_spacing],
-                [r_tot + x_spacing + r_tot*c2, -y_spacing - r_tot*c1],
-                [r_tot + r_tot*c2, -spacing - r_tot*c1]
-            ]);
-        }
+        DShape(r_tot);
         translate([r_tot, spacing, 0])
         BatteryHole();
         translate([r_tot, -spacing, 0])
@@ -150,5 +159,15 @@ module Box() {
     }
 }
 
+module Lid() {
+    //offset_top
+    
+    rotate([0, 0, 90])
+    LidSide(0, 0, 0);
+    translate([2*r_tot + x_spacing, 0, 0])
+    rotate([0, 0, -90])
+    LidSide(0, 0, 0);
+}
+
 Box();
-//Oring();
+//Lid();
