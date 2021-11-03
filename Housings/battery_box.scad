@@ -18,6 +18,7 @@ oring_hfact = 0.8;
 z_attach = h - thickness;
 l_attach = 12;
 w_attach = 4;
+y_attach = 17;
 
 $fn=80;
 eps = 1e-3;
@@ -44,17 +45,17 @@ module BatteryHole() {
     cylinder(h=3*h, d=dtot, center=true);
 }
 
-module DShape(r) {
+module DShape(r, l) {
     union() {
         translate([r_tot, spacing, 0])
-        cylinder(h=h, r=r);
+        cylinder(h=l, r=r);
         translate([r_tot, -spacing, 0])
-        cylinder(h=h, r=r);
+        cylinder(h=l, r=r);
         translate([r_tot + x_spacing, y_spacing, 0])
-        cylinder(h=h, r=r);
+        cylinder(h=l, r=r);
         translate([r_tot + x_spacing, -y_spacing, 0])
-        cylinder(h=h, r=r);
-        linear_extrude(h)
+        cylinder(h=l, r=r);
+        linear_extrude(l)
         polygon([
              [r_tot-r, -spacing],
              [r_tot-r, spacing],
@@ -97,8 +98,8 @@ module Oring() {
     r2 = d/2 + gap_side + thickness/2 - oring/2;
     translate([0, 0, h-oring_hfact*oring])
     difference() {
-            DShape(r1);
-            DShape(r2);
+            DShape(r1, h);
+            DShape(r2, h);
     }
 }
 
@@ -124,16 +125,17 @@ module Fillet(r) {
 };
 
 module AttachDip(l, x, y, z, flip) {
-    translate([x - l/2, y, z])
-    rotate([-45 + 180*flip, 0, 0])
-    cube(l_attach);
+    translate([x, y-l/2, z])
+    rotate([0, 45 - 180*flip + 180, 0])
+    cube(l);
 }
 
 module LidSide(x, y, flip) {
+    z0 = z_attach-thickness/2;
     difference() {
-        translate([x, y, z_attach-thickness/2])
+        translate([x, y, z0])
         rotate([0, 0, 180*flip])
-        linear_extrude(h + 2*thickness - z_attach)
+        linear_extrude(h + offset_top + thickness - z0)
         polygon([[-l_attach/2, -thickness+eps], [l_attach/2, -thickness+eps], [l_attach/2, w_attach], [-l_attach/2, w_attach]]);
         translate([x+l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
         translate([x-l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
@@ -142,7 +144,7 @@ module LidSide(x, y, flip) {
 
 module Box() {
     difference() {
-        DShape(r_tot);
+        DShape(r_tot, h);
         translate([r_tot, spacing, 0])
         BatteryHole();
         translate([r_tot, -spacing, 0])
@@ -160,14 +162,39 @@ module Box() {
 }
 
 module Lid() {
-    //offset_top
-    
-    rotate([0, 0, 90])
-    LidSide(0, 0, 0);
-    translate([2*r_tot + x_spacing, 0, 0])
-    rotate([0, 0, -90])
-    LidSide(0, 0, 0);
+    difference() {
+        translate([0, 0, h])
+        DShape(r_tot, thickness + offset_top);
+        DShape(r_tot - thickness, h + offset_top);
+    }
+    difference() {
+        union() {
+            rotate([0, 0, 90])
+            LidSide(y_attach, 0, 0);
+            rotate([0, 0, 90])
+            LidSide(-y_attach, 0, 0);
+            translate([2*r_tot + x_spacing, 0, 0])
+            rotate([0, 0, -90])
+            LidSide(0, 0, 0);
+        }
+        DShape(r_tot, h + offset_top);
+    }
+    intersection() {
+        AttachDip(0.95*l_attach, 0.3*thickness, y_attach, z_attach, 0);
+        rotate([0, 0, 90])
+        LidSide(y_attach, 0, 0);
+    }
+    intersection() {
+        AttachDip(0.95*l_attach, 0.3*thickness, -y_attach, z_attach, 0);
+        rotate([0, 0, 90])
+        LidSide(-y_attach, 0, 0);
+    }
+    intersection() {
+        AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness, 0, z_attach, 1);
+        translate([2*r_tot + x_spacing, 0, 0])
+        rotate([0, 0, -90])
+        LidSide(0, 0, 0);
+    }
 }
-
 Box();
-//Lid();
+Lid();
