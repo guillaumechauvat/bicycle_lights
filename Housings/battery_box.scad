@@ -21,6 +21,9 @@ w_attach = 4;
 y_attach = 17;
 gap = 0.2;
 
+// wire hole size
+w_wire = 3;
+
 $fn=80;
 eps = 1e-3;
 
@@ -136,7 +139,7 @@ module LidSide(x, y, flip) {
     difference() {
         translate([x, y, z0])
         rotate([0, 0, 180*flip])
-        linear_extrude(h + offset_top + thickness - z0)
+        linear_extrude(h + gap_h_top + thickness - z0)
         polygon([[-l_attach/2, -thickness+eps], [l_attach/2, -thickness+eps], [l_attach/2, w_attach], [-l_attach/2, w_attach]]);
         translate([x+l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
         translate([x-l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
@@ -168,8 +171,8 @@ module Box() {
 module Lid() {
     difference() {
         translate([0, 0, h])
-        DShape(r_tot, thickness + offset_top);
-        DShape(r_tot - thickness, h + offset_top);
+        DShape(r_tot, thickness + gap_h_top);
+        DShape(r_tot - thickness, h + gap_h_top);
     }
     difference() {
         union() {
@@ -181,7 +184,7 @@ module Lid() {
             rotate([0, 0, -90])
             LidSide(0, 0, 0);
         }
-        DShape(r_tot, h + offset_top);
+        DShape(r_tot, h + gap_h_top);
     }
     intersection() {
         AttachDip(0.95*l_attach, 0.3*thickness, y_attach, z_attach, 0);
@@ -200,5 +203,18 @@ module Lid() {
         LidSide(0, 0, 0);
     }
 }
+
+module Bottom() {
+    difference() {
+        translate([0, 0, -thickness - gap_h_bottom])
+        DShape(r_tot, thickness + gap_h_bottom);
+        translate([0, 0, -gap_h_bottom])
+        DShape(r_tot - thickness, thickness + gap_h_bottom);
+        // place for wires
+        cube([3*thickness, w_wire, w_wire], center=true);
+    }
+}
+
 Box();
 Lid();
+Bottom();
