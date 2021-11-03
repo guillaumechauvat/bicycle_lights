@@ -15,6 +15,8 @@ w_handlebar = 15;
 t_handlebar = 6;
 // opening angle
 theta = 60;
+// lens params
+r_curv = 22;
 
 module Interior() {
     translate([-lx/2, 0, lz/2])
@@ -67,6 +69,18 @@ module Bezel() {
     }
 }
 
+module Lens() {
+    translate([lx/2 - h_lens - h_extra, 0, lz/2])
+    rotate([0, 90, 0])
+    intersection() {
+        r = (lz-thickness)/2 - gap;
+        h = sqrt(r_curv*r_curv - r*r) - h_lens - h_extra;
+        translate([0, 0, -h])
+        sphere(r=22, $fn=200);
+        cylinder(d=lz-thickness, h=r_curv, $fn=80);
+    }
+}
+
 module Box() {
     intersection() {
         difference() {
@@ -87,3 +101,4 @@ module Box() {
 }
 
 Box();
+Lens();
