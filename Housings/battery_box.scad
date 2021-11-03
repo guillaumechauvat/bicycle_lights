@@ -15,7 +15,7 @@ oring = 2;
 oring_hfact = 0.8;
 
 // attach mechanism
-z_attach = h - thickness;
+z_attach = h - 1.5*thickness;
 l_attach = 12;
 w_attach = 4;
 y_attach = 17;
@@ -170,9 +170,10 @@ module Box() {
 
 module Lid() {
     difference() {
-        translate([0, 0, h])
-        DShape(r_tot, thickness + gap_h_top);
+        translate([0, 0, h-thickness/2])
+        DShape(r_tot + thickness/2, thickness + gap_h_top + thickness/2);
         DShape(r_tot - thickness, h + gap_h_top);
+        DShape(r_tot, h);
     }
     difference() {
         union() {
