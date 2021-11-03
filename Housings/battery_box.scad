@@ -173,7 +173,7 @@ module Lid() {
         translate([0, 0, h-thickness/2])
         DShape(r_tot + thickness/2, thickness + gap_h_top + thickness/2);
         DShape(r_tot - thickness, h + gap_h_top);
-        DShape(r_tot, h);
+        DShape(r_tot + gap, h);
     }
     difference() {
         union() {
@@ -185,7 +185,7 @@ module Lid() {
             rotate([0, 0, -90])
             LidSide(0, 0, 0);
         }
-        DShape(r_tot, h + gap_h_top);
+        DShape(r_tot + gap, h + gap_h_top);
     }
     intersection() {
         AttachDip(0.95*l_attach, 0.3*thickness, y_attach, z_attach, 0);
@@ -213,7 +213,7 @@ module Bottom() {
         translate([0, 0, -gap_h_bottom])
         DShape(r_tot - thickness, thickness + gap_h_bottom);
         // border
-        DShape(r_tot, thickness + gap_h_bottom);
+        DShape(r_tot + gap, thickness + gap_h_bottom);
         // place for wires
         translate([0, 0, w_wire/2])
         cube([3*thickness, w_wire, 2*w_wire], center=true);
