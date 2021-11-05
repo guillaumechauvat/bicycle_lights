@@ -24,6 +24,9 @@ gap = 0.2;
 // wire hole size
 w_wire = 3;
 
+// O-ring protrusion
+h_oring = 0.5;
+
 $fn=80;
 eps = 1e-3;
 
@@ -102,8 +105,9 @@ module Oring() {
     r2 = d/2 + gap_side + thickness/2 - oring/2;
     translate([0, 0, h-oring_hfact*oring])
     difference() {
-            DShape(r1, h);
-            DShape(r2, h);
+        DShape(r1, h);
+        translate([0, 0, -h/2])
+        DShape(r2, 2*h);
     }
 }
 
@@ -168,6 +172,7 @@ module Box() {
     }
 }
 
+
 module Lid() {
     difference() {
         translate([0, 0, h-thickness/2])
@@ -220,6 +225,23 @@ module Bottom() {
     }
 }
 
+// actual O ring, printed in flexible plastic
+module OringFill() {
+    intersection() {
+        r1 = d/2 + gap_side + thickness/2 + oring/2 - gap;
+        r2 = d/2 + gap_side + thickness/2 - oring/2 + gap;
+        translate([0, 0, h-oring_hfact*oring])
+        difference() {
+            DShape(r1, h);
+            translate([0, 0, -h/2])
+            DShape(r2, 2*h);
+        }
+        translate([-10*d, -10*d, 0])
+        cube([20*d, 20*d, h + h_oring]);
+    }
+}
+
 Box();
 Lid();
 Bottom();
+OringFill();
