@@ -14,10 +14,11 @@ gap_h_top = 5;
 offset_top = 5;
 offset_extra = 8;
 thickness = 4;
+int_thickness = 2.5;
 inter_r = 2.5;
 wire_x_offset = 2;
 oring = 2;
-oring_hfact = 0.8;
+oring_hfact = 2;
 
 // attach mechanism
 z_attach = h - 2.5*thickness;
@@ -30,7 +31,7 @@ gap = 0.2;
 w_wire = 3;
 
 // O-ring protrusion
-h_oring = 0.2;
+h_oring = 0.3;
 
 // text params
 font = "Liberation Sans";
@@ -121,11 +122,6 @@ module TopGap() {
     ]);
 }
 
-module WireHole() {
-    translate([-thickness/2+c2*r_tot + wire_x_offset, spacing - c1*r_tot, 0])
-    cylinder(r=inter_r, h=3*h, center=true);
-}
-
 module Oring() {
     r1 = d/2 + gap_side + thickness/2 + oring/2;
     r2 = d/2 + gap_side + thickness/2 - oring/2;
@@ -186,15 +182,15 @@ module LidSide(x, y, flip) {
 // display +/- battery signs
 module Polarities() {
     z_text = z_attach-1.5*thickness;
-    translate([0, spacing, z_text])
+    translate([thickness - int_thickness, spacing, z_text])
     rotate([0, 0, -90])
     rotate([90, 0, 0])
     Text("+");
-    translate([0, 0, z_text])
+    translate([thickness - int_thickness, 0, z_text])
     rotate([0, 0, -90])
     rotate([90, 0, 0])
     Text("+");
-    translate([0, -spacing, z_text])
+    translate([thickness - int_thickness, -spacing, z_text])
     rotate([0, 0, -90])
     rotate([90, 0, 0])
     Text("−");
@@ -208,81 +204,126 @@ module Polarities() {
     Text("−");
 }
 
-module Box() {
+module BatteryWall() {
     difference() {
-        DShape(r_tot, h, extra_x);
-        translate([r_tot, spacing, 0])
+        dtot = d + 2*gap_side + 2*int_thickness;
+        cylinder(h=h, d=dtot);
         BatteryHole();
-        translate([r_tot, -spacing, 0])
-        BatteryHole();
-        translate([r_tot, 0, 0])
-        BatteryHole();
-        translate([r_tot + x_spacing, y_spacing, 0])
-        BatteryHole();
-        translate([r_tot + x_spacing, -y_spacing, 0])
-        BatteryHole();
-        TopGap();
-        WireHole();
-        Oring();
-        AttachDip(0.95*l_attach, 0.3*thickness + gap, y_attach, z_attach, 0);
-        AttachDip(0.95*l_attach, 0.3*thickness + gap, -y_attach, z_attach, 0);
-        AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness - gap, 0, z_attach, 1);
     }
-    Polarities();
+}
+
+module Box() {
+    color([0.7, 1, 0.7])
+    union() {
+        difference() {
+            union() {
+                // outside wall
+                difference() {
+                    DShape(r_tot, h, extra_x);
+                    translate([0, 0, -h/2])
+                    DShape(r_tot - thickness, 2*h, extra_x);
+                }
+                translate([r_tot, spacing, 0])
+                BatteryWall();
+                translate([r_tot, -spacing, 0])
+                BatteryWall();
+                translate([r_tot, 0, 0])
+                BatteryWall();
+                translate([r_tot + x_spacing, y_spacing, 0])
+                BatteryWall();
+                translate([r_tot + x_spacing, -y_spacing, 0])
+                BatteryWall();
+            }
+            //TopGap();
+            //WireHole();
+            Oring();
+            AttachDip(0.95*l_attach, 0.3*thickness + gap, y_attach, z_attach, 0);
+            AttachDip(0.95*l_attach, 0.3*thickness + gap, -y_attach, z_attach, 0);
+            AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness - gap, 0, z_attach, 1);
+        }
+        Polarities();
+    }
 }
 
 
 module BottomConnectors() {
-    translate([r_tot, spacing, -gap_h_bottom - connector_depth])
+    h_connector = -gap_h_bottom - connector_depth;
+    translate([r_tot, spacing, ])
     cylinder(d=spring_d, h=thickness);
-    translate([r_tot, 0, -gap_h_bottom - connector_depth])
+    translate([r_tot, 0, h_connector])
     cylinder(d=spring_d, h=thickness);
-    translate([r_tot, -spacing, -gap_h_bottom - connector_depth])
+    translate([r_tot, -spacing, h_connector])
     cylinder(d=button_d, h=thickness);
-    translate([r_tot + x_spacing, y_spacing, -gap_h_bottom - connector_depth])
+    translate([r_tot + x_spacing, y_spacing, h_connector])
     cylinder(d=button_d, h=thickness);
-    translate([r_tot + x_spacing, -y_spacing, -gap_h_bottom - connector_depth])
+    translate([r_tot + x_spacing, -y_spacing, h_connector])
     cylinder(d=spring_d, h=thickness);
 }
 
+module TopConnectors() {
+    h_connector = h + gap_h_top - thickness + connector_depth;
+    translate([r_tot, spacing, h_connector])
+    cylinder(d=button_d, h=thickness);
+    translate([r_tot, 0, h_connector])
+    cylinder(d=button_d, h=thickness);
+    translate([r_tot, -spacing, h_connector])
+    cylinder(d=spring_d, h=thickness);
+    translate([r_tot + x_spacing, y_spacing, h_connector])
+    cylinder(d=spring_d, h=thickness);
+    translate([r_tot + x_spacing, -y_spacing, h_connector])
+    cylinder(d=button_d, h=thickness);
+}
+
 module Lid() {
-    difference() {
-        translate([0, 0, h-thickness/2])
-        DShape(r_tot + thickness/2, thickness + gap_h_top + thickness/2, extra_x);
-        DShape(r_tot - thickness, h + gap_h_top, extra_x);
-        DShape(r_tot + gap, h, extra_x);
-    }
-    difference() {
-        union() {
+    color([0.7, 0.7, 1])
+    union() {
+        // main body
+        difference() {
+            // bulk
+            translate([0, 0, h-thickness/2])
+            DShape(r_tot + thickness/2, thickness + gap_h_top + thickness/2, extra_x);
+            // main void
+            DShape(r_tot - thickness, h + gap_h_top, extra_x);
+            // border
+            DShape(r_tot + gap, h, extra_x);
+            // connectors shape
+            TopConnectors();
+        }
+        // clips
+        difference() {
+            union() {
+                rotate([0, 0, 90])
+                LidSide(y_attach, extra_x, 0);
+                rotate([0, 0, 90])
+                LidSide(-y_attach, extra_x, 0);
+                translate([2*r_tot + x_spacing, 0, 0])
+                rotate([0, 0, -90])
+                LidSide(0, 0, 0);
+            }
+            DShape(r_tot + gap, h + gap_h_top, extra_x);
+        }
+        // clips teeth
+        intersection() {
+            AttachDip(0.95*l_attach, 0.3*thickness - extra_x, y_attach, z_attach, 0);
             rotate([0, 0, 90])
             LidSide(y_attach, extra_x, 0);
+        }
+        intersection() {
+            AttachDip(0.95*l_attach, 0.3*thickness - extra_x, -y_attach, z_attach, 0);
             rotate([0, 0, 90])
             LidSide(-y_attach, extra_x, 0);
+        }
+        intersection() {
+            AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness, 0, z_attach, 1);
             translate([2*r_tot + x_spacing, 0, 0])
             rotate([0, 0, -90])
             LidSide(0, 0, 0);
         }
-        DShape(r_tot + gap, h + gap_h_top, extra_x);
-    }
-    intersection() {
-        AttachDip(0.95*l_attach, 0.3*thickness - extra_x, y_attach, z_attach, 0);
-        rotate([0, 0, 90])
-        LidSide(y_attach, extra_x, 0);
-    }
-    intersection() {
-        AttachDip(0.95*l_attach, 0.3*thickness - extra_x, -y_attach, z_attach, 0);
-        rotate([0, 0, 90])
-        LidSide(-y_attach, extra_x, 0);
-    }
-    intersection() {
-        AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness, 0, z_attach, 1);
-        translate([2*r_tot + x_spacing, 0, 0])
-        rotate([0, 0, -90])
-        LidSide(0, 0, 0);
     }
 }
 
 module Bottom() {
+    color([0.7, 0.7, 1])
     difference() {
         translate([0, 0, -thickness - gap_h_bottom])
         DShape(r_tot + thickness/2, 1.5*thickness + gap_h_bottom, extra_x);
@@ -291,27 +332,29 @@ module Bottom() {
         DShape(r_tot - thickness, thickness + gap_h_bottom, extra_x);
         // border
         DShape(r_tot + gap, thickness + gap_h_bottom, extra_x);
+        // connectors location
         BottomConnectors();
     }
 }
 
 // actual O ring, printed in flexible plastic
 module OringFill() {
+    color([1, 0, 0])
     intersection() {
         r1 = d/2 + gap_side + thickness/2 + oring/2 - gap;
         r2 = d/2 + gap_side + thickness/2 - oring/2 + gap;
         translate([0, 0, h-oring_hfact*oring])
         difference() {
-            DShape(r1, h, 0, extra_x);
+            DShape(r1, h, extra_x);
             translate([0, 0, -h/2])
-            DShape(r2, 2*h, 0, extra_x);
+            DShape(r2, 2*h, extra_x);
         }
         translate([-10*d, -10*d, -h])
         cube([20*d, 20*d, 2*h + h_oring]);
     }
 }
 
-//Box();
+Box();
 Lid();
 Bottom();
-//OringFill();
+OringFill();
