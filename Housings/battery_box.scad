@@ -170,23 +170,24 @@ module LidSide(x, y, flip) {
 
 // display +/- battery signs
 module Polarities() {
-    translate([0, spacing, (h + z_attach)/2])
+    z_text = z_attach-1.5*thickness;
+    translate([0, spacing, z_text])
     rotate([0, 0, -90])
     rotate([90, 0, 0])
     Text("+");
-    translate([0, 0, (h + z_attach)/2])
+    translate([0, 0, z_text])
     rotate([0, 0, -90])
     rotate([90, 0, 0])
     Text("+");
-    translate([0, -spacing, (h + z_attach)/2])
+    translate([0, -spacing, z_text])
     rotate([0, 0, -90])
     rotate([90, 0, 0])
     Text("−");
-    translate([2*r_tot + x_spacing, -spacing/2, (h + z_attach)/2])
+    translate([2*r_tot + x_spacing, -spacing/2, z_text])
     rotate([0, 0, 90])
     rotate([90, 0, 0])
     Text("+");
-    translate([2*r_tot + x_spacing, spacing/2, (h + z_attach)/2])
+    translate([2*r_tot + x_spacing, spacing/2, z_text])
     rotate([0, 0, 90])
     rotate([90, 0, 0])
     Text("−");
