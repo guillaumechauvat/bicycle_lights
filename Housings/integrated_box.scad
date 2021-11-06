@@ -18,7 +18,7 @@ int_thickness = 2.5;
 inter_r = 2.5;
 wire_x_offset = 2;
 oring = 2;
-oring_hfact = 1.5;
+oring_hfact = 2;
 
 // attach mechanism
 z_attach = h - 2.5*thickness;
