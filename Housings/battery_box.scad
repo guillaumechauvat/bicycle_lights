@@ -15,7 +15,7 @@ oring = 2;
 oring_hfact = 0.8;
 
 // attach mechanism
-z_attach = h - 1.5*thickness;
+z_attach = h - 2.5*thickness;
 l_attach = 12;
 w_attach = 4;
 y_attach = 17;
@@ -25,8 +25,14 @@ gap = 0.2;
 w_wire = 3;
 
 // O-ring protrusion
-h_oring = 0.5;
+h_oring = 0.2;
 
+// text params
+font = "Liberation Sans";
+text_size = 9;
+text_depth = 0.2;
+
+// precision params
 $fn=80;
 eps = 1e-3;
 
@@ -132,6 +138,13 @@ module Fillet(r) {
     }
 };
 
+module Text(l) {
+    translate([0, -text_size/2, -text_depth])
+	linear_extrude(height = 2*text_depth) {
+		text(l, size=text_size, font=font, halign="center", valign="bottom");
+	}
+}
+
 module AttachDip(l, x, y, z, flip) {
     translate([x, y-l/2, z])
     rotate([0, 45 - 180*flip + 180, 0])
@@ -148,6 +161,30 @@ module LidSide(x, y, flip) {
         translate([x+l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
         translate([x-l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
     }
+}
+
+// display +/- battery signs
+module Polarities() {
+    translate([0, spacing, (h + z_attach)/2])
+    rotate([0, 0, -90])
+    rotate([90, 0, 0])
+    Text("+");
+    translate([0, 0, (h + z_attach)/2])
+    rotate([0, 0, -90])
+    rotate([90, 0, 0])
+    Text("+");
+    translate([0, -spacing, (h + z_attach)/2])
+    rotate([0, 0, -90])
+    rotate([90, 0, 0])
+    Text("−");
+    translate([2*r_tot + x_spacing, -spacing/2, (h + z_attach)/2])
+    rotate([0, 0, 90])
+    rotate([90, 0, 0])
+    Text("+");
+    translate([2*r_tot + x_spacing, spacing/2, (h + z_attach)/2])
+    rotate([0, 0, 90])
+    rotate([90, 0, 0])
+    Text("−");
 }
 
 module Box() {
@@ -170,6 +207,7 @@ module Box() {
         AttachDip(0.95*l_attach, 0.3*thickness + gap, -y_attach, z_attach, 0);
         AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness - gap, 0, z_attach, 1);
     }
+    Polarities();
 }
 
 
