@@ -124,14 +124,20 @@ module TopGap() {
     ]);
 }
 
-module Oring() {
-    r1 = d/2 + gap_side + thickness/2 + oring/2;
-    r2 = d/2 + gap_side + thickness/2 - oring/2;
-    translate([0, 0, h-oring_hfact*oring])
-    difference() {
-        DShape(r1, h, extra_x);
-        translate([0, 0, -h/2])
-        DShape(r2, 2*h, extra_x);
+module Oring(width) {
+    r1 = d/2 + gap_side + thickness/2 + width/2;
+    r2 = d/2 + gap_side + thickness/2 - width/2;
+    h_top = h + oring_hfact*oring;
+    h_bottom = h - h_oring;
+    intersection() {
+        translate([0, 0, h_bottom])
+        difference() {
+            DShape(r1, h, extra_x);
+            translate([0, 0, -h/2])
+            DShape(r2, 2*h, extra_x);
+        }
+        translate([-10*d, -10*d, -h])
+        cube([20*d, 20*d, h + h_top]);
     }
 }
 
@@ -238,7 +244,6 @@ module Box() {
             }
             //TopGap();
             WireHole();
-            Oring();
             AttachDip(0.95*l_attach, 0.3*thickness + gap, y_attach, z_attach, 0);
             AttachDip(0.95*l_attach, 0.3*thickness + gap, -y_attach, z_attach, 0);
             AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness - gap, 0, z_attach, 1);
@@ -309,6 +314,8 @@ module Lid() {
             DShape(r_tot + gap, h, extra_x);
             // connectors shape
             TopConnectors();
+            // place for O-ring to make it waterproof
+            Oring(oring);
         }
         // clips
         difference() {
@@ -363,18 +370,7 @@ module Bottom() {
 // actual O ring, printed in flexible plastic
 module OringFill() {
     color([1, 0, 0])
-    intersection() {
-        r1 = d/2 + gap_side + thickness/2 + oring/2 - gap;
-        r2 = d/2 + gap_side + thickness/2 - oring/2 + gap;
-        translate([0, 0, h-oring_hfact*oring])
-        difference() {
-            DShape(r1, h, extra_x);
-            translate([0, 0, -h/2])
-            DShape(r2, 2*h, extra_x);
-        }
-        translate([-10*d, -10*d, -h])
-        cube([20*d, 20*d, 2*h + h_oring]);
-    }
+    Oring(oring - 2*gap);
 }
 
 Box();
