@@ -18,7 +18,7 @@ int_thickness = 2.5;
 inter_r = 2.5;
 wire_x_offset = 2;
 oring = 2;
-oring_hfact = 2;
+oring_hfact = 1.5;
 
 // attach mechanism
 z_attach = h - 2.5*thickness;
@@ -28,7 +28,9 @@ y_attach = 17;
 gap = 0.2;
 
 // wire hole size
-w_wire = 3;
+w_hole = 14;
+h_hole = 6;
+fillet_hole = 2;
 
 // O-ring protrusion
 h_oring = 0.3;
@@ -235,7 +237,7 @@ module Box() {
                 BatteryWall();
             }
             //TopGap();
-            //WireHole();
+            WireHole();
             Oring();
             AttachDip(0.95*l_attach, 0.3*thickness + gap, y_attach, z_attach, 0);
             AttachDip(0.95*l_attach, 0.3*thickness + gap, -y_attach, z_attach, 0);
@@ -272,6 +274,25 @@ module TopConnectors() {
     cylinder(d=spring_d, h=thickness);
     translate([r_tot + x_spacing, -y_spacing, h_connector])
     cylinder(d=button_d, h=thickness);
+}
+
+module WireHole() {
+    difference() {
+        translate([-lx, 0, h_hole/2 - gap_h_bottom])
+        cube([4*thickness, w_hole, h_hole], center=true);
+        translate([0, w_hole/2, h_hole/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole);
+        translate([0, w_hole/2, -h_hole/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole);
+        translate([0, -w_hole/2, h_hole/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole);
+        translate([0, -w_hole/2, -h_hole/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole);
+    }
 }
 
 module Lid() {
@@ -334,6 +355,8 @@ module Bottom() {
         DShape(r_tot + gap, thickness + gap_h_bottom, extra_x);
         // connectors location
         BottomConnectors();
+        // hole for I/O wires
+        WireHole();
     }
 }
 
