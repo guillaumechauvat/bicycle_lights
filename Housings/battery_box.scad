@@ -32,6 +32,11 @@ font = "Liberation Sans";
 text_size = 9;
 text_depth = 0.2;
 
+// connector params
+spring_d = 12;
+button_d = 9;
+connector_depth = 0.5;
+
 // precision params
 $fn=80;
 eps = 1e-3;
@@ -211,6 +216,19 @@ module Box() {
 }
 
 
+module BottomConnectors() {
+    translate([r_tot, spacing, -gap_h_bottom - connector_depth])
+    cylinder(d=spring_d, h=thickness);
+    translate([r_tot, 0, -gap_h_bottom - connector_depth])
+    cylinder(d=spring_d, h=thickness);
+    translate([r_tot, -spacing, -gap_h_bottom - connector_depth])
+    cylinder(d=button_d, h=thickness);
+    translate([r_tot + x_spacing, y_spacing, -gap_h_bottom - connector_depth])
+    cylinder(d=button_d, h=thickness);
+    translate([r_tot + x_spacing, -y_spacing, -gap_h_bottom - connector_depth])
+    cylinder(d=spring_d, h=thickness);
+}
+
 module Lid() {
     difference() {
         translate([0, 0, h-thickness/2])
@@ -260,6 +278,7 @@ module Bottom() {
         // place for wires
         translate([0, 0, w_wire/2])
         cube([3*thickness, w_wire, 2*w_wire], center=true);
+        BottomConnectors();
     }
 }
 
