@@ -5,7 +5,7 @@ lx = 30;
 
 // dimensions of my "18650" batteries. In practice they're closer to 18700.
 d = 18.5;
-h = 70.5; // with the button top
+h_bat = 70.5; // with the button top
 h_body = 69.3;
 d_button = 6.5;
 gap_side = 0.5;
@@ -21,7 +21,7 @@ oring = 2;
 oring_hfact = 2;
 
 // attach mechanism
-z_attach = h - 2.5*thickness;
+z_attach_offset = 2.5*thickness;
 l_attach = 12;
 w_attach = 4;
 y_attach = 17;
@@ -51,6 +51,8 @@ eps = 1e-3;
 
 
 // useful dimensions
+h = lz - gap_h_top - gap_h_bottom;
+z_attach = h - z_attach_offset;
 h_tot = h + gap_h_bottom;
 r_tot = d/2 + thickness + gap_side;
 spacing = d + thickness + 2*gap_side;
@@ -59,7 +61,6 @@ c2 = 0.5;
 x_spacing = spacing*c1;
 y_spacing = spacing*c2;
 extra_x = lx + thickness;
-
 // just for displaying what it looks like
 module Battery() {
     cylinder(h=h_body, d=d, $fn=80);
@@ -74,6 +75,9 @@ module BatteryHole() {
 
 // base shape, with an extra length dx
 module DShape(r, l, dx) {
+    ymax = ly/2 + thickness + r - r_tot;
+    yc = ymax - r;
+    theta0 = 9;
     union() {
         translate([r_tot, spacing, 0])
         cylinder(h=l, r=r);
@@ -83,24 +87,26 @@ module DShape(r, l, dx) {
         cylinder(h=l, r=r);
         translate([r_tot + x_spacing, -y_spacing, 0])
         cylinder(h=l, r=r);
-        translate([r_tot - dx, spacing, 0])
+        translate([r_tot - dx, yc, 0])
         cylinder(h=l, r=r);
-        translate([r_tot - dx, -spacing, 0])
+        translate([r_tot - dx, -yc, 0])
         cylinder(h=l, r=r);
         linear_extrude(l)
         polygon([
-            [r_tot-r-dx, -spacing],
-            [r_tot-r-dx, spacing],
-            [r_tot - dx, spacing + r],
-            [r_tot, spacing + r],
+            [r_tot-r-dx, -yc],
+            [r_tot-r-dx, yc],
+            [r_tot - dx, ymax],
+            [0, ymax],
+            [r_tot + r*sin(theta0), spacing + r*cos(theta0)],
             [r_tot + r*c2, spacing + r*c1],
             [r_tot + x_spacing + r*c2, y_spacing + r*c1],
             [r_tot + x_spacing + r, y_spacing],
             [r_tot + x_spacing + r, -y_spacing],
             [r_tot + x_spacing + r*c2, -y_spacing - r*c1],
             [r_tot + r*c2, -spacing - r*c1],
-            [r_tot, -spacing - r],
-            [r_tot - dx, -spacing - r],
+            [r_tot + r*sin(theta0), -spacing - r*cos(theta0)],
+            [0, -ymax],
+            [r_tot - dx, -ymax],
         ]);
     }
 }
@@ -215,7 +221,8 @@ module Polarities() {
 module BatteryWall() {
     difference() {
         dtot = d + 2*gap_side + 2*int_thickness;
-        cylinder(h=h, d=dtot);
+        translate([0, 0, h - h_bat])
+        cylinder(h=h_bat, d=dtot);
         BatteryHole();
     }
 }
@@ -255,7 +262,7 @@ module Box() {
 
 module BottomConnectors() {
     h_connector = -gap_h_bottom - connector_depth;
-    translate([r_tot, spacing, ])
+    translate([r_tot, spacing, h_connector])
     cylinder(d=spring_d, h=thickness);
     translate([r_tot, 0, h_connector])
     cylinder(d=spring_d, h=thickness);
@@ -351,19 +358,32 @@ module Lid() {
 }
 
 module Bottom() {
+    h_extra = h - h_bat;
+    z_extra = -gap_h_bottom - eps;
     color([0.7, 0.7, 1])
-    difference() {
-        translate([0, 0, -thickness - gap_h_bottom])
-        DShape(r_tot + thickness/2, 1.5*thickness + gap_h_bottom, extra_x);
-        // main hole
-        translate([0, 0, -gap_h_bottom])
-        DShape(r_tot - thickness, thickness + gap_h_bottom, extra_x);
-        // border
-        DShape(r_tot + gap, thickness + gap_h_bottom, extra_x);
-        // connectors location
-        BottomConnectors();
-        // hole for I/O wires
-        WireHole();
+    union() {
+        difference() {
+            translate([0, 0, -thickness - gap_h_bottom])
+            DShape(r_tot + thickness/2, 1.5*thickness + gap_h_bottom, extra_x);
+            // main hole
+            translate([0, 0, -gap_h_bottom])
+            DShape(r_tot - thickness, thickness + gap_h_bottom, extra_x);
+            // border
+            DShape(r_tot + gap, thickness + gap_h_bottom, extra_x);
+            // hole for I/O wires
+            WireHole();
+        }
+        difference() {
+            intersection() {
+                translate([thickness, -lz, z_extra])
+                cube([3*lz, 3*lz, h_extra]);
+                translate([0, 0, -lz])
+                DShape(r_tot - thickness + eps, 3*lz, extra_x);
+            }
+            // connectors location
+            translate([0, 0, h_extra])
+            BottomConnectors();
+        }
     }
 }
 
@@ -377,3 +397,5 @@ Box();
 Lid();
 Bottom();
 OringFill();
+translate([-lx/2+1, 0, lz/2-gap_h_bottom])
+cube([lx, ly, lz], center=true);
