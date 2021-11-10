@@ -45,6 +45,7 @@ text_depth = 0.2;
 spring_d = 12;
 button_d = 9;
 connector_depth = 0.5;
+gap_bottom_bat = 1.2;
 
 // precision params
 $fn=80;
@@ -381,7 +382,7 @@ module Bottom() {
                 translate([thickness, -lz, z_extra])
                 cube([3*lz, 3*lz, h_extra]);
                 translate([0, 0, -lz])
-                DShape(r_tot - thickness + eps, 3*lz, extra_x);
+                DShape(r_tot - thickness - gap_bottom_bat, 3*lz, extra_x);
             }
             // connectors location
             translate([0, 0, h_extra])
