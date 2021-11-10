@@ -26,6 +26,7 @@ l_attach = 12;
 w_attach = 4;
 y_attach = 17;
 gap = 0.2;
+clip_offset = 0.4;
 
 // wire hole size
 w_hole = 14;
@@ -182,11 +183,13 @@ module AttachDip(l, x, y, z, flip) {
 }
 
 module LidSide(x, y, flip) {
-    z0 = z_attach-thickness/2;
+    z0 = z_attach-thickness/3;
+    offset = (1-2*flip)*clip_offset;
+    translate([0, offset, 0])
     difference() {
-        translate([x, y, z0])
+        translate([x, y, z0 + clip_offset])
         rotate([0, 0, 180*flip])
-        linear_extrude(h + gap_h_top + thickness - z0)
+        linear_extrude(h + gap_h_top + thickness - z0 - offset)
         polygon([[-l_attach/2, -thickness+eps], [l_attach/2, -thickness+eps], [l_attach/2, w_attach], [-l_attach/2, w_attach]]);
         translate([x+l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
         translate([x-l_attach/2, y+(1-2*flip)*w_attach, 0]) Fillet(w_attach);
@@ -335,21 +338,21 @@ module Lid() {
                 rotate([0, 0, -90])
                 LidSide(0, 0, 0);
             }
-            DShape(r_tot + gap, h + gap_h_top, extra_x);
+            DShape(r_tot + gap + clip_offset, h + gap_h_top, extra_x);
         }
         // clips teeth
         intersection() {
-            AttachDip(0.95*l_attach, 0.3*thickness - extra_x, y_attach, z_attach, 0);
+            AttachDip(0.95*l_attach, 0.3*thickness - extra_x - clip_offset, y_attach, z_attach + clip_offset, 0);
             rotate([0, 0, 90])
             LidSide(y_attach, extra_x, 0);
         }
         intersection() {
-            AttachDip(0.95*l_attach, 0.3*thickness - extra_x, -y_attach, z_attach, 0);
+            AttachDip(0.95*l_attach, 0.3*thickness - extra_x - clip_offset, -y_attach, z_attach + clip_offset, 0);
             rotate([0, 0, 90])
             LidSide(-y_attach, extra_x, 0);
         }
         intersection() {
-            AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness, 0, z_attach, 1);
+            AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness + clip_offset, 0, z_attach + clip_offset, 1);
             translate([2*r_tot + x_spacing, 0, 0])
             rotate([0, 0, -90])
             LidSide(0, 0, 0);
