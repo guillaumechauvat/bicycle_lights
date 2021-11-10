@@ -251,8 +251,8 @@ module Box() {
             }
             //TopGap();
             WireHole();
-            AttachDip(0.95*l_attach, 0.3*thickness + gap, y_attach, z_attach, 0);
-            AttachDip(0.95*l_attach, 0.3*thickness + gap, -y_attach, z_attach, 0);
+            AttachDip(0.95*l_attach, -lx -thickness + 0.3*thickness + gap, y_attach, z_attach, 0);
+            AttachDip(0.95*l_attach, -lx -thickness + 0.3*thickness + gap, -y_attach, z_attach, 0);
             AttachDip(0.95*l_attach, 2*r_tot + x_spacing - 0.3*thickness - gap, 0, z_attach, 1);
         }
         Polarities();
