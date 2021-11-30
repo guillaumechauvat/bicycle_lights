@@ -227,34 +227,21 @@ module Fillet(r) {
     }
 };
 
-module OutsideFillets() {
+
+module RectShape(lx_, ly_, lz_, fillet_) {
     module TwoFillets() {
-        translate([lx/2 + thickness, ly/2 + thickness, 0])
-        Fillet(fillet);
-        translate([lx/2 + thickness, -ly/2 - thickness, 0])
-        Fillet(fillet);
+        translate([lx_/2, ly_/2, 0])
+        Fillet(fillet_);
+        translate([lx_/2, -ly_/2, 0])
+        Fillet(fillet_);
     }
-    TwoFillets();
-    rotate([0, 0, 180])
-    TwoFillets();
-}
-module InsideFillets() {
-    h = lz + thickness;
-    module TwoFillets() {
-        intersection() {
-            union() {
-                translate([lx/2, ly/2, 0])
-                Fillet(inside_fillet);
-                translate([lx/2, -ly/2, 0])
-                Fillet(inside_fillet);
-            }
-            translate([0, 0, h/2])
-            cube([2*lx, 2*ly, h], center=true);
-        }
+    difference() {
+        translate([0, 0, lz_/2])
+        cube([lx_, ly_, lz_], center=true);
+        TwoFillets();
+        rotate([0, 0, 180])
+        TwoFillets();
     }
-    TwoFillets();
-    rotate([0, 0, 180])
-    TwoFillets();
 }
 
 module WireHole() {
@@ -322,19 +309,16 @@ module WireMouth() {
 module MainBox() {
     difference() {
         union() {
-            translate([-lx/2-thickness, -ly/2-thickness, 0])
-            cube([lx + 2*thickness, ly + 2*thickness, lz + thickness]);
+            RectShape(lx + 2*thickness, ly + 2*thickness, lz + thickness, fillet);
             WireMouth();
         }
-        translate([-lx/2, -ly/2, thickness])
-        cube([lx, ly, lz + thickness]);
+        translate([0, 0, thickness])
+        RectShape(lx, ly, lz + thickness, inside_fillet);
         Contacts();
-        OutsideFillets();
         WireHole();
     }
     Supports();
     BoardSupports();
-    InsideFillets();
 }
 
 //Batteries();
