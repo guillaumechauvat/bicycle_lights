@@ -44,14 +44,21 @@ gap = 0.3;
 // lid
 lid_height = 2*thickness;
 
+// attach mechanism
+teeth_depth = 0.4;
+teeth_width = 6;
+teeth_radius = 0.8;
+teeth_x_ratio = 0.34;
+
 //
 lxb = 5*d + 6*bat_gap + 4*bat_spacing;
 lyb = h_bat + d_plus + d_minus - 2*connector_depth;
 ly = max(lyb, ly0);
 lx = max(lxb, lx0);
 lz = d + 2*bat_gap + lz0;
-z_hole = lz - 1.5*thickness - h_hole/2;
-
+z_hole = lz + thickness - lid_height - h_hole/2 - thickness_hole - 0.2;
+teeth_x = teeth_x_ratio * lx;
+teeth_z = lz + thickness - 0.85*lid_height;
 
 module Battery() {
     dy = (d_minus - d_plus)/2;
@@ -292,8 +299,8 @@ module WireMouth() {
         rotate([90, 0, 0])
         linear_extrude(w_out, center=true) {
             polygon([
-                [-wire_out_length, 0],
-                [-wire_out_length, -h_out/2],
+                [-wire_out_length + 0.01, 0],
+                [-wire_out_length + 0.01, -h_out/2],
                 [0, -h_out/2 - wire_out_length*tan(wire_out_angle)],
                 [0, 0]
             ]);
@@ -309,7 +316,15 @@ module WireMouth() {
     }
 }
 
+module Tooth(r, depth, width) {
+    translate([0, r - depth, 0])
+    rotate([0, 90, 0])
+    cylinder(r = r, h = width, center=true, $fn = 80);
+}
+
 module MainBox() {
+    y_int = ly/2 + thickness/2;
+    teeth_hole_radius = teeth_radius + gap/2;
     difference() {
         union() {
             RectShape(lx + 2*thickness, ly + 2*thickness, lz + thickness, fillet);
@@ -325,10 +340,47 @@ module MainBox() {
             translate([0, 0, -thickness])
             RectShape(lx + thickness, ly + thickness, lz + 3*thickness, fillet);
         }
+        intersection() {
+            union() {
+                translate([teeth_x, y_int, teeth_z])
+                Tooth(teeth_hole_radius, teeth_depth, teeth_width);
+                translate([-teeth_x, y_int, teeth_z])
+                Tooth(teeth_hole_radius, teeth_depth, teeth_width);
+                translate([teeth_x, -y_int, teeth_z])
+                rotate([0, 0, 180])
+                Tooth(teeth_hole_radius, teeth_depth, teeth_width);
+                translate([-teeth_x, -y_int, teeth_z])
+                rotate([0, 0, 180])
+                Tooth(teeth_hole_radius, teeth_depth, teeth_width);
+            }
+            cube([lx + thickness + gap, ly + thickness + gap, 3*lz], center=true);
+        }
     }
     Supports();
     BoardSupports();
 }
 
+module Lid() {
+    x_int = lx/2 + thickness/2 + gap;
+    y_int = ly/2 + thickness/2 + gap;
+    difference() {
+        translate([0, 0, lz + thickness - lid_height])
+        RectShape(lx + 2*thickness, ly + 2*thickness, lid_height + thickness + gap, fillet);
+        translate([0, 0, lz + thickness - lid_height - gap])
+        RectShape(2*x_int, 2*y_int, lid_height + 2*gap, fillet);
+    }
+    translate([teeth_x, y_int, teeth_z])
+    Tooth(teeth_radius, teeth_depth, teeth_width);
+    translate([-teeth_x, y_int, teeth_z])
+    Tooth(teeth_radius, teeth_depth, teeth_width);
+    translate([teeth_x, -y_int, teeth_z])
+    rotate([0, 0, 180])
+    Tooth(teeth_radius, teeth_depth, teeth_width);
+    translate([-teeth_x, -y_int, teeth_z])
+    rotate([0, 0, 180])
+    Tooth(teeth_radius, teeth_depth, teeth_width);
+}
+
 //Batteries();
 MainBox();
+color(c = [1.0, 0.3, 0.1]) Lid();
