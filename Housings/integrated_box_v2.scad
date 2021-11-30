@@ -25,11 +25,17 @@ support_angle = 15;
 // extra battery spacing
 bat_spacing = 1.0;
 
+// wire hole size
+w_hole = 14;
+h_hole = 6;
+fillet_hole = 2;
+
 thickness = 3;
 oring = 2;
 oring_hfact = 2;
 fillet = 2;
 inside_fillet = 1;
+gap = 0.3;
 
 //
 lxb = 5*d + 6*bat_gap + 4*bat_spacing;
@@ -243,7 +249,25 @@ module InsideFillets() {
     TwoFillets();
 }
 
-
+module WireHole() {
+    z_hole = lz + thickness - h_hole/2;
+    translate([-lx/2, 0, z_hole - 2*thickness])
+    difference() {
+        cube([4*thickness, w_hole, h_hole], center=true);
+        translate([0, w_hole/2, h_hole/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole);
+        translate([0, w_hole/2, -h_hole/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole);
+        translate([0, -w_hole/2, h_hole/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole);
+        translate([0, -w_hole/2, -h_hole/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole);
+    }
+}
 
 module MainBox() {
     difference() {
@@ -253,6 +277,7 @@ module MainBox() {
         cube([lx, ly, lz + thickness]);
         Contacts();
         OutsideFillets();
+        WireHole();
     }
     Supports();
     BoardSupports();
