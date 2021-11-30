@@ -12,8 +12,8 @@ h_body = 69.3;
 bat_gap = 0.3;
 
 // dimensions of battery connectors with battery mounted
-d_plus = 1.5;
-d_minus = 4;
+d_plus = 1.8;
+d_minus = 4.3;
 connector_depth = 0.5;
 l_connector = 11.5;
 
@@ -29,6 +29,10 @@ bat_spacing = 1.0;
 w_hole = 14;
 h_hole = 6;
 fillet_hole = 2;
+thickness_hole = 1.5;
+fillet_hole_out = 3;
+wire_out_length = 15;
+wire_out_angle = 45;
 
 thickness = 3;
 oring = 2;
@@ -43,11 +47,13 @@ lyb = h_bat + d_plus + d_minus - 2*connector_depth;
 ly = max(lyb, ly0);
 lx = max(lxb, lx0);
 lz = d + 2*bat_gap + lz0;
+z_hole = lz - thickness - h_hole/2;
 
 
 module Battery() {
+    dy = (d_minus - d_plus)/2;
     color(c = [0.35, 0.45, 0.8])
-    translate([0, -h_bat/2, 0])
+    translate([0, -h_bat/2 + dy, 0])
     rotate([-90, 0, 0]) {
         cylinder(h=h_body, d=d, $fn=80);
         translate([0, 0, h_body])
@@ -69,10 +75,12 @@ module Batteries() {
     translate([-2*dd, 0, z0])
     Battery();
     translate([-dd, 0, z0])
+    rotate([0, 0, 180])
     Battery();
     translate([0, 0, z0])
     Battery();
     translate([dd, 0, z0])
+    rotate([0, 0, 180])
     Battery();
     translate([2*dd, 0, z0])
     Battery();
@@ -250,10 +258,9 @@ module InsideFillets() {
 }
 
 module WireHole() {
-    z_hole = lz + thickness - h_hole/2;
-    translate([-lx/2, 0, z_hole - 2*thickness])
+    translate([-lx/2, 0, z_hole])
     difference() {
-        cube([4*thickness, w_hole, h_hole], center=true);
+        cube([lx/2, w_hole, h_hole], center=true);
         translate([0, w_hole/2, h_hole/2])
         rotate([0, 90, 0])
         Fillet(fillet_hole);
@@ -269,10 +276,56 @@ module WireHole() {
     }
 }
 
+module WireMouth() {
+    w_out = w_hole + 2*thickness_hole;
+    h_out = h_hole + 2*thickness_hole;
+    translate([-lx/2, 0, z_hole])
+    difference() {
+        cube([lx/2, w_hole + 2*thickness_hole, h_hole + 2*thickness_hole], center=true);
+        translate([0, w_out/2, h_out/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole_out);
+        translate([0, w_out/2, -h_out/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole_out);
+        translate([0, -w_out/2, h_out/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole_out);
+        translate([0, -w_out/2, -h_out/2])
+        rotate([0, 90, 0])
+        Fillet(fillet_hole_out);
+        translate([-lx/2 - wire_out_length - thickness, 0, 0])
+        cube([lx, ly, lz], center=true);
+    }
+    translate([-lx/2 - thickness, 0, z_hole])
+    difference() {
+        rotate([90, 0, 0])
+        linear_extrude(w_out, center=true) {
+            polygon([
+                [-wire_out_length, 0],
+                [-wire_out_length, -h_out/2],
+                [0, -h_out/2 - wire_out_length*tan(wire_out_angle)],
+                [0, 0]
+            ]);
+        }
+        translate([0, -w_out/2, -h_out/2 - wire_out_length*tan(wire_out_angle)])
+        rotate([0, -45, 0])
+        translate([0, 0, lx/2])
+        Fillet(fillet_hole_out);
+        translate([0, w_out/2, -h_out/2 - wire_out_length*tan(wire_out_angle)])
+        rotate([0, -45, 0])
+        translate([0, 0, lx/2])
+        Fillet(fillet_hole_out);
+    }
+}
+
 module MainBox() {
     difference() {
-        translate([-lx/2-thickness, -ly/2-thickness, 0])
-        cube([lx + 2*thickness, ly + 2*thickness, lz + thickness]);
+        union() {
+            translate([-lx/2-thickness, -ly/2-thickness, 0])
+            cube([lx + 2*thickness, ly + 2*thickness, lz + thickness]);
+            WireMouth();
+        }
         translate([-lx/2, -ly/2, thickness])
         cube([lx, ly, lz + thickness]);
         Contacts();
