@@ -62,6 +62,9 @@ lz = d + 2*bat_gap + lz0;
 z_hole = lz + thickness - lid_height - h_hole/2 - thickness_hole - 0.2;
 teeth_x = teeth_x_ratio * lx;
 teeth_z = lz + thickness - 0.85*lid_height;
+x_ext = lx/2 + thickness;
+y_ext = ly/2 + thickness;
+z_ext = lz + 2*thickness + gap;
 
 module Battery() {
     dy = (d_minus - d_plus)/2;
@@ -358,6 +361,18 @@ module MainBox() {
             }
             cube([lx + thickness + gap, ly + thickness + gap, 3*lz], center=true);
         }
+        translate([0, -y_ext, 0])
+        rotate([0, 90, 0])
+        Fillet(fillet);
+        translate([0, y_ext, 0])
+        rotate([0, 90, 0])
+        Fillet(fillet);
+        translate([-x_ext, 0, 0])
+        rotate([90, 0, 0])
+        Fillet(fillet);
+        translate([x_ext, 0, 0])
+        rotate([90, 0, 0])
+        Fillet(fillet);
     }
     Supports();
     BoardSupports();
@@ -368,7 +383,7 @@ module Lid() {
     y_int = ly/2 + thickness/2 + gap;
     module Handle() {
         difference() {
-            translate([0, ly/2 + thickness, lz + 2*thickness + gap - r_handles])
+            translate([0, ly/2 + thickness, lz + 2*thickness + gap - r_handles - fillet/2])
             rotate([0, 90, 0])
             cylinder(r = r_handles, h = h_handles, center=true, $fn=80);
             cube([lx + 2*thickness - gap, ly + 2*thickness - gap, 3*lz], center=true);
@@ -379,6 +394,18 @@ module Lid() {
         RectShape(lx + 2*thickness, ly + 2*thickness, lid_height + thickness + gap, fillet);
         translate([0, 0, lz + thickness - lid_height - gap])
         RectShape(2*x_int, 2*y_int, lid_height + 2*gap, fillet);
+        translate([0, -y_ext, z_ext])
+        rotate([0, 90, 0])
+        Fillet(fillet);
+        translate([0, y_ext, z_ext])
+        rotate([0, 90, 0])
+        Fillet(fillet);
+        translate([-x_ext, 0, z_ext])
+        rotate([90, 0, 0])
+        Fillet(fillet);
+        translate([x_ext, 0, z_ext])
+        rotate([90, 0, 0])
+        Fillet(fillet);
     }
     translate([teeth_x, y_int, teeth_z])
     Tooth(teeth_radius, teeth_depth, teeth_width);
@@ -402,5 +429,5 @@ module Lid() {
 }
 
 //Batteries();
-//MainBox();
+MainBox();
 color(c = [1.0, 0.3, 0.1]) Lid();
