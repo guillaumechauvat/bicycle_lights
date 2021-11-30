@@ -35,11 +35,14 @@ wire_out_length = 15;
 wire_out_angle = 45;
 
 thickness = 3;
-oring = 2;
-oring_hfact = 2;
+//oring = 2;
+//oring_hfact = 2;
 fillet = 2;
 inside_fillet = 1;
 gap = 0.3;
+
+// lid
+lid_height = 2*thickness;
 
 //
 lxb = 5*d + 6*bat_gap + 4*bat_spacing;
@@ -47,7 +50,7 @@ lyb = h_bat + d_plus + d_minus - 2*connector_depth;
 ly = max(lyb, ly0);
 lx = max(lxb, lx0);
 lz = d + 2*bat_gap + lz0;
-z_hole = lz - thickness - h_hole/2;
+z_hole = lz - 1.5*thickness - h_hole/2;
 
 
 module Battery() {
@@ -316,6 +319,12 @@ module MainBox() {
         RectShape(lx, ly, lz + thickness, inside_fillet);
         Contacts();
         WireHole();
+        translate([0, 0, lz + thickness - lid_height])
+        difference() {
+            RectShape(lx + 3*thickness, ly + 3*thickness, lz + thickness, fillet);
+            translate([0, 0, -thickness])
+            RectShape(lx + thickness, ly + thickness, lz + 3*thickness, fillet);
+        }
     }
     Supports();
     BoardSupports();
