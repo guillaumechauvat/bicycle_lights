@@ -43,12 +43,15 @@ gap = 0.3;
 
 // lid
 lid_height = 2*thickness;
+lid_inside_height = 0.8*thickness;
+r_handles = 3;
+h_handles = 12;
 
 // attach mechanism
 teeth_depth = 0.4;
 teeth_width = 6;
 teeth_radius = 0.8;
-teeth_x_ratio = 0.34;
+teeth_x_ratio = 0.25;
 
 //
 lxb = 5*d + 6*bat_gap + 4*bat_spacing;
@@ -363,6 +366,14 @@ module MainBox() {
 module Lid() {
     x_int = lx/2 + thickness/2 + gap;
     y_int = ly/2 + thickness/2 + gap;
+    module Handle() {
+        difference() {
+            translate([0, ly/2 + thickness, lz + 2*thickness + gap - r_handles])
+            rotate([0, 90, 0])
+            cylinder(r = r_handles, h = h_handles, center=true, $fn=80);
+            cube([lx + 2*thickness - gap, ly + 2*thickness - gap, 3*lz], center=true);
+        }
+    }
     difference() {
         translate([0, 0, lz + thickness - lid_height])
         RectShape(lx + 2*thickness, ly + 2*thickness, lid_height + thickness + gap, fillet);
@@ -379,8 +390,17 @@ module Lid() {
     translate([-teeth_x, -y_int, teeth_z])
     rotate([0, 0, 180])
     Tooth(teeth_radius, teeth_depth, teeth_width);
+    difference() {
+        translate([0, 0, lz + thickness + gap - lid_inside_height])
+        RectShape(lx - 2*gap, ly - 2*gap, lid_inside_height + gap, inside_fillet);
+        translate([0, 0, lz + thickness - lid_inside_height])
+        RectShape(lx - 2*gap - thickness, ly - 2*gap - thickness, lid_inside_height + 3*gap, inside_fillet);
+    }
+    Handle();
+    rotate([0, 0, 180])
+    Handle();
 }
 
 //Batteries();
-MainBox();
+//MainBox();
 color(c = [1.0, 0.3, 0.1]) Lid();
