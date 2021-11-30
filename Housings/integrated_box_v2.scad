@@ -18,14 +18,18 @@ connector_depth = 0.5;
 l_connector = 11.5;
 
 // battery supports
-support_width = 12;
+support_width = 10;
 support_height = 0.67*d;
+support_gap = 5;
+support_angle = 15;
 // extra battery spacing
 bat_spacing = 1.0;
 
 thickness = 3;
 oring = 2;
 oring_hfact = 2;
+fillet = 2;
+inside_fillet = 1;
 
 //
 lxb = 5*d + 6*bat_gap + 4*bat_spacing;
@@ -112,7 +116,7 @@ module Support() {
     d2 = d + 2*bat_gap + bat_spacing;
     difference() {
         translate([0, 0, support_height/2 + 3*thickness/4])
-        cube([d2, support_width + thickness/2, support_height + thickness/2], center=true); 
+        cube([d2, support_width, support_height + thickness/2], center=true); 
         BatterySpace();
         translate([0, 0, thickness + 0.7*d])
         cube([d-bat_gap, 2*support_width, d/2], center=true);
@@ -121,7 +125,7 @@ module Support() {
 
 module Supports() {
     dd = d + bat_gap + bat_spacing;
-    y0 = ly/2 - support_width/2 + thickness/4;
+    y0 = ly/2 - support_width/2 - support_gap;
     translate([-2*dd, y0, 0])
     Support();
     translate([-dd, y0, 0])
@@ -147,8 +151,7 @@ module Supports() {
 module BoardSupports() {
     dd = d + bat_gap + bat_spacing;
     height = d/2 + bat_spacing;
-    width = 0.8*support_width;
-    angle = 30;
+    width = support_width;
     top = 1;
     module BoardSupport() {
         module SideSlope() {
@@ -157,15 +160,15 @@ module BoardSupports() {
             cube(4*height);
         }
         difference() {
-            translate([0, ly/2 - support_width + width/2, support_height + thickness + height/2])
+            translate([0, ly/2 - support_width + width/2 - support_gap, support_height + thickness + height/2])
             rotate([0, -90, 0])
             linear_extrude(2*bat_gap + bat_spacing, center=true)
             polygon([
                 [-height/2, -width/2],
                 [-height/2, width/2],
-                [height/2, width/2 - height*tan(angle)],
-                [height/2, -width/2 - (height-top)*tan(angle)],
-                [height/2 - top, -width/2 - (height-top)*tan(angle)],
+                [height/2, width/2 - height*tan(support_angle)],
+                [height/2, -width/2 - (height-top)*tan(support_angle)],
+                [height/2 - top, -width/2 - (height-top)*tan(support_angle)],
             ]);
             translate([bat_spacing/2 + bat_gap, ly/2 - 2*support_width, support_height + thickness])
             SideSlope();
@@ -190,6 +193,58 @@ module BoardSupports() {
     
 }
 
+module Fillet(r) {
+    difference() {
+        linear_extrude(3*lz, center=true) square(2*r, center=true);
+        union() {
+            translate([r, r, 0])
+            linear_extrude(4*lz, center=true)
+            circle(r, $fn=40);
+            translate([r, -r, 0])
+            linear_extrude(4*lz, center=true)
+            circle(r, $fn=40);
+            translate([-r, -r, 0])
+            linear_extrude(4*lz, center=true)
+            circle(r, $fn=40);
+            translate([-r, r, 0])
+            linear_extrude(4*lz, center=true)
+            circle(r, $fn=40);
+        }
+    }
+};
+
+module OutsideFillets() {
+    module TwoFillets() {
+        translate([lx/2 + thickness, ly/2 + thickness, 0])
+        Fillet(fillet);
+        translate([lx/2 + thickness, -ly/2 - thickness, 0])
+        Fillet(fillet);
+    }
+    TwoFillets();
+    rotate([0, 0, 180])
+    TwoFillets();
+}
+module InsideFillets() {
+    h = lz + thickness;
+    module TwoFillets() {
+        intersection() {
+            union() {
+                translate([lx/2, ly/2, 0])
+                Fillet(inside_fillet);
+                translate([lx/2, -ly/2, 0])
+                Fillet(inside_fillet);
+            }
+            translate([0, 0, h/2])
+            cube([2*lx, 2*ly, h], center=true);
+        }
+    }
+    TwoFillets();
+    rotate([0, 0, 180])
+    TwoFillets();
+}
+
+
+
 module MainBox() {
     difference() {
         translate([-lx/2-thickness, -ly/2-thickness, 0])
@@ -197,9 +252,11 @@ module MainBox() {
         translate([-lx/2, -ly/2, thickness])
         cube([lx, ly, lz + thickness]);
         Contacts();
+        OutsideFillets();
     }
     Supports();
     BoardSupports();
+    InsideFillets();
 }
 
 //Batteries();
