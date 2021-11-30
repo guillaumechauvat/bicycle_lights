@@ -151,16 +151,28 @@ module BoardSupports() {
     angle = 30;
     top = 1;
     module BoardSupport() {
-        translate([0, ly/2 - support_width + width/2, support_height + thickness + height/2])
-        rotate([0, -90, 0])
-        linear_extrude(2*bat_gap + bat_spacing, center=true)
-        polygon([
-            [-height/2, -width/2],
-            [-height/2, width/2],
-            [height/2, width/2 - height*tan(angle)],
-            [height/2, -width/2 - (height-top)*tan(angle)],
-            [height/2 - top, -width/2 - (height-top)*tan(angle)],
-        ]);
+        module SideSlope() {
+            translate([0, -2*height, 0])
+            rotate([0,-3, 0])
+            cube(4*height);
+        }
+        difference() {
+            translate([0, ly/2 - support_width + width/2, support_height + thickness + height/2])
+            rotate([0, -90, 0])
+            linear_extrude(2*bat_gap + bat_spacing, center=true)
+            polygon([
+                [-height/2, -width/2],
+                [-height/2, width/2],
+                [height/2, width/2 - height*tan(angle)],
+                [height/2, -width/2 - (height-top)*tan(angle)],
+                [height/2 - top, -width/2 - (height-top)*tan(angle)],
+            ]);
+            translate([bat_spacing/2 + bat_gap, ly/2 - 2*support_width, support_height + thickness])
+            SideSlope();
+            translate([-bat_spacing/2 - bat_gap, ly/2 - 2*support_width, support_height + thickness])
+            rotate([0, 0, 180])
+            SideSlope();
+        }
     }
     module OneSide() {
         translate([-1.5*dd, 0, 0])
