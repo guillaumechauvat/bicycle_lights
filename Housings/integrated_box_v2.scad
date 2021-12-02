@@ -48,9 +48,9 @@ r_handles = 3;
 h_handles = 12;
 
 // attach mechanism
-teeth_depth = 0.4;
+teeth_depth = 0.6;
 teeth_width = 6;
-teeth_radius = 0.8;
+teeth_radius = 0.9;
 teeth_x_ratio = 0.25;
 
 //
