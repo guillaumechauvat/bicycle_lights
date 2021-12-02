@@ -9,7 +9,7 @@ d = 18.5;
 h_bat = 70.5; // with the button top
 d_button = 6.5;
 h_body = 69.3;
-bat_gap = 0.3;
+bat_gap = 0.2;
 
 // dimensions of battery connectors with battery mounted
 d_plus = 1.8;
@@ -19,11 +19,13 @@ l_connector = 11.5;
 
 // battery supports
 support_width = 10;
-support_height = 0.67*d;
+support_height = 0.7*d;
 support_gap = 5;
-support_angle = 15;
 // extra battery spacing
-bat_spacing = 1.0;
+bat_spacing = 2.5;
+// board support
+support_angle = 15;
+board_side_angle = 4;
 
 // wire hole size
 w_hole = 14;
@@ -148,7 +150,7 @@ module Support() {
         translate([0, 0, support_height/2 + 3*thickness/4])
         cube([d2, support_width, support_height + thickness/2], center=true); 
         BatterySpace();
-        translate([0, 0, thickness + 0.7*d])
+        translate([0, 0, thickness + 0.8*d])
         cube([d-bat_gap, 2*support_width, d/2], center=true);
     }
 }
@@ -186,7 +188,7 @@ module BoardSupports() {
     module BoardSupport() {
         module SideSlope() {
             translate([0, -2*height, 0])
-            rotate([0,-3, 0])
+            rotate([0, -board_side_angle, 0])
             cube(4*height);
         }
         difference() {
