@@ -431,5 +431,5 @@ module Lid() {
 }
 
 //Batteries();
-MainBox();
+//MainBox();
 color(c = [1.0, 0.3, 0.1]) Lid();
