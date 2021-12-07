@@ -6,12 +6,12 @@
 #define BRAKE_SWITCH 9 // orange
 
 // low value for testing
-#define LOW_AMPL_FRONT 12
+#define LOW_AMPL_FRONT 32
 #define HIGH_AMPL_FRONT 1023
 #define LOW_AMPL_BACK 128
 #define HIGH_AMPL_BACK 1023
 // time in milliseconds to hold the switch for making it permanent
-#define SWITCH_HOLD 500
+#define SWITCH_HOLD 300
 // minimum time in milliseconds between two consecutive events, to avoid noise
 #define MIN_DELAY 10
 // time spent off after which the amplitude comes back to low when turning on
